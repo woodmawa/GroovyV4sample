@@ -1,0 +1,26 @@
+plugins {
+    id 'groovy'
+    id 'java'
+}
+
+group 'org.example'
+version '1.0-SNAPSHOT'
+
+repositories {
+    maven {
+        url "https://mvnrepository.com/artifact/org.apache.groovy/groovy"
+    }
+    mavenCentral()
+}
+
+dependencies {
+    implementation 'org.apache.groovy:groovy:4.0.0-beta-2'
+
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.7.0'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.7.0'
+    testImplementation group: 'org.spockframework', name: 'spock-core', version: '2.0-groovy-3.0'
+}
+
+test {
+    useJUnitPlatform()
+}
