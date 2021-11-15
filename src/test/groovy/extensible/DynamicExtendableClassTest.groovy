@@ -79,7 +79,7 @@ class DynamicExtendableClassTest {
     void testClassUtilGetStaticValue () {
 
         def val = ClassUtils.getStaticFieldValue(DynamicExtendableClass, "declaredStaticString" )
-
+        val
      }
 
     @Test
