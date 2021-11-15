@@ -1,5 +1,6 @@
 package extensible
 
+import org.codehaus.groovy.runtime.HandleMetaClass
 import org.junit.jupiter.api.Test
 import static org.junit.jupiter.api.Assertions.assertEquals
 import static org.junit.jupiter.api.Assertions.assertThrows
@@ -37,33 +38,26 @@ class DynamicExtendableClassTest {
     @Test
     void testMetaClassStatic () {
 
-        //ExpandoMetaClass.ExpandoMetaProperty mprop = DynamicExtendableClass.metaClass.static.getAt("blah")
-        //mprop.setProperty("staticAddedMethod", "wills new value")
-        //Map staticProps = DynamicExtendableClass.metaClass.static.getProperties()
         println DynamicExtendableClass.metaClass
 
-        new DynamicExtendableClass() //forces chnage
-
-        println DynamicExtendableClass.metaClass
-
-        /*MetaClassRegistry registry = GroovySystem.getMetaClassRegistry()
+        MetaClassRegistry registry = GroovySystem.getMetaClassRegistry()
         MetaClass origMC = registry.getMetaClass(DynamicExtendableClass)
+        assert origMC.getClass() == MetaClassImpl  //default implementation
 
-        ExpandoMetaClass emc = new ExpandoMetaClass (DynamicExtendableClass, false, true)
-
-        emc.static.getStaticAddedMethod {-> "hello from my emc"}
+        ExpandoMetaClass emc = new ExpandoMetaClass (DynamicExtendableClass, true, true)
+        emc.static.getStaticAddedMethod = {-> "static hello from my emc"}
         emc.initialize()
 
+        registry.removeMetaClass(DynamicExtendableClass)
         registry.setMetaClass(DynamicExtendableClass, emc)
 
-        MetaClass newMC = registry.getMetaClass(DynamicExtendableClass)
-*/
+        assert DynamicExtendableClass.metaClass.getClass() == ExpandoMetaClass
 
-        //DynamicExtendableClass testInstance = new DynamicExtendableClass()
+        assert DynamicExtendableClass.staticAddedMethod == "static hello from my emc"
 
-        //println DynamicExtendableClass.metaClass.getClass()
-        println DynamicExtendableClass.staticAddedMethod
-        //println  DynamicExtendableClass.addedMethod
+        registry.removeMetaClass(DynamicExtendableClass)
+        registry.setMetaClass(DynamicExtendableClass, origMC)
+
 
     }
 }
