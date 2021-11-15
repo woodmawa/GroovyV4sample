@@ -1,7 +1,11 @@
 package extensible
 
 import org.codehaus.groovy.runtime.HandleMetaClass
+import org.codehaus.groovy.runtime.MethodClosure
 import org.junit.jupiter.api.Test
+
+import java.lang.reflect.Constructor
+
 import static org.junit.jupiter.api.Assertions.assertEquals
 import static org.junit.jupiter.api.Assertions.assertThrows
 
@@ -44,9 +48,13 @@ class DynamicExtendableClassTest {
         MetaClass origMC = registry.getMetaClass(DynamicExtendableClass)
         assert origMC.getClass() == MetaClassImpl  //default implementation
 
+        def  constructors = MetaClassImpl.getConstructors()
+
         ExpandoMetaClass emc = new ExpandoMetaClass (DynamicExtendableClass, true, true)
         emc.static.getStaticAddedMethod = {-> "static hello from my emc"}
-        emc.initialize()
+
+        emc.constructor = { new DynamicExtendableClass() }
+      emc.initialize()
 
         registry.removeMetaClass(DynamicExtendableClass)
         registry.setMetaClass(DynamicExtendableClass, emc)
@@ -55,8 +63,10 @@ class DynamicExtendableClassTest {
 
         assert DynamicExtendableClass.staticAddedMethod == "static hello from my emc"
 
-        registry.removeMetaClass(DynamicExtendableClass)
+         registry.removeMetaClass(DynamicExtendableClass)
         registry.setMetaClass(DynamicExtendableClass, origMC)
+
+        assert DynamicExtendableClass.metaClass.getClass() == HandleMetaClass
 
 
     }
