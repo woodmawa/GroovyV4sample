@@ -5,12 +5,9 @@ import org.codehaus.groovy.runtime.metaclass.ThreadManagedMetaBeanProperty
 import java.lang.reflect.Modifier
 
 class MyClass {
-    static String classDeclaredStatName = "static will"
+    static String classDeclaredStatName = "in class definition static name"
 
-    String getStaticName () {
-
-        this.metaClass.getProperty(this, "statName")
-    }
+    String name = "instance level name "
 
     def getPropertyValue (String propName) {
         def hasPropWill = MyClass.metaClass.hasProperty(this, propName)
@@ -23,20 +20,38 @@ class MyClass {
                 .findAll{MetaProperty mp ->
                     println mp.getter.name
                     mp.getter.static }
-                .find {it ->
+                .each {it ->
                     MyClass[it.name]  }
+    }
+
+    def getStaticMethodsNames () {
+        MyClass.metaClass.methods
+            .findAll {MetaMethod mm ->
+                Modifier.isStatic (mm.modifiers)
+            }.collect {it.name}
     }
 }
 
-//metaclass behaves like an exapndo - add variable and give it a value
+//metaclass behaves like an expando - add variable and give it a value
 MyClass.metaClass.will = "hello"
-MyClass.metaClass.static.extendedStaticName = "extended static hello"
+//metaclass behaves like an expando - add static method that takes no params with getXxx to sumulate a property
+MyClass.metaClass.static.getExtendedStaticName = {-> "returns extended static hello"}
 
 MyClass num1 = new MyClass()
 
-println "read std static classDeclaredStatName : " + MyClass.classDeclaredStatName
+assert MyClass.metaClass.hasProperty(MyClass, 'name')
+assert MyClass.metaClass.hasProperty(MyClass, 'classDeclaredStatName')
+
+
+MetaMethod ext = MyClass.metaClass.getStaticMetaMethod('getExtendedStaticName')
+
+println "read std static getExtendedStaticName closure : " + ext.invoke(MyClass )
+
+println "static metaMethods :  " + num1.getStaticMethodsNames()
 
 println "read prop will : " + num1.getPropertyValue("will")
+
+//println "invoke external metaclass added closure " + num1.extendedStaticName
 
 println "read static prop statName : " + num1.getStaticAttributeWithValue("static hello")
 

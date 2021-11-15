@@ -1,3 +1,0 @@
-package script
-
-println "hello"
