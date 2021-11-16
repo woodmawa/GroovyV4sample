@@ -83,6 +83,13 @@ class DynamicExtendableClassTest {
      }
 
     @Test
+    void testClassUtilGetStaticMetaClassValue () {
+
+        def val = ClassUtils.getStaticMetaClassFieldValue(DynamicExtendableClass, "declaredStaticString" )
+        val
+    }
+
+    @Test
     void testMetaClassStatic () {
 
         /*    println DynamicExtendableClass.metaClass

@@ -4,6 +4,17 @@ import org.codehaus.groovy.runtime.metaclass.ThreadManagedMetaBeanProperty
 
 import java.lang.reflect.Modifier
 
+Expando expando = new Expando ()
+
+expando.name = "william"
+
+expando.method = System.out::println
+
+Map mp =  expando.getProperties()
+
+mp.method ("called method")
+
+mp
 class MyClass {
     static String classDeclaredStatName = "in class definition static name"
 
