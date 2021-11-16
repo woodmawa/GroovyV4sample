@@ -2,18 +2,34 @@ package extensible
 
 
 import org.codehaus.groovy.reflection.ReflectionUtils
+import org.codehaus.groovy.runtime.MethodClosure
 import org.codehaus.groovy.runtime.metaclass.ClosureStaticMetaMethod
 
 import java.lang.reflect.Field
+import java.lang.reflect.Method
 import java.lang.reflect.Modifier
 import  java.util.stream.Collectors
 
 class ClassUtils {
 
+    public static Object getFieldValue(Object obj, String name) {
+        Class<?> clazz = obj.getClass()
+        Field field = clazz.getDeclaredField(name)
+        if (field != null) {
+            try {
+                ReflectionUtils.makeAccessible(field)
+                return field.get(obj)
+            }
+            catch (Exception e) {
+                return null
+            }
+        }
+        return null
+    }
+
     public static Object getStaticFieldValue(Class<?> clazz, String name) {
 
-        List l = Arrays.stream (clazz.getDeclaredFields()).filter (f -> Modifier.isStatic (f.getModifiers())).map (f -> f.name).collect (Collectors.toList())
-        l
+        //List l = Arrays.stream (clazz.getDeclaredFields()).filter (f -> Modifier.isStatic (f.getModifiers())).map (f -> f.name).collect (Collectors.toList())
 
         Field field = clazz.getDeclaredField(name)
          if (field != null) {
@@ -69,4 +85,20 @@ class ClassUtils {
         }
         return null
     }
+
+    public static boolean isPublicStatic(Method m) {
+        final int modifiers = m.getModifiers()
+        return Modifier.isPublic(modifiers) && Modifier.isStatic(modifiers)
+    }
+
+    public static boolean isPublicStatic(MetaMethod m) {
+        final int modifiers = m.getModifiers()
+        return Modifier.isPublic(modifiers) && Modifier.isStatic(modifiers)
+    }
+
+    public static boolean isPublicStatic(Field f) {
+        final int modifiers = f.getModifiers()
+        return Modifier.isPublic(modifiers) && Modifier.isStatic(modifiers)
+    }
+
 }
