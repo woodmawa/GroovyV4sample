@@ -19,6 +19,6 @@ class DynamicExtendableClass {
             DynamicExtendableClass.metaClass.addedProperty = "added property to class metaClass"
             DynamicExtendableClass.metaClass.getAddedMethod = { -> "added closure as method to class metaClass" }
             DynamicExtendableClass.metaClass.static.getAddedStaticMethod = { -> "added closure as static method to class metaClass"}
-
+            //cant find a method to add a static property
         }
 }
