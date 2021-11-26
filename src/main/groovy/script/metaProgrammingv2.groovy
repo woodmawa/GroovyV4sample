@@ -57,7 +57,7 @@ def getStaticProperty (def obj, String pname) {
 
     List props = clazz.getDeclaredFields().findAll {it.name == pname && Modifier.isStatic(it.modifiers) }
 
-    def props2 = clazz.getDeclaredMethods()  //.findAll {it.name == "get$camelCaseName"}
+    List props2 = clazz.getDeclaredMethods()  //.findAll {it.name == "get$camelCaseName"}
 
     def props3 = mc.getProperties()
    props
