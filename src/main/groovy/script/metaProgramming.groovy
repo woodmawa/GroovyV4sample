@@ -70,3 +70,4 @@ List<MetaProperty> staticProps = MyClass.metaClass.properties.findAll { Modifier
 println "static dump " + staticProps.collect {it ->
      it.name}
 //println num1.metaClass.static.statName
+

@@ -11,7 +11,7 @@ myc.name = "william"
 myc.dynamic = "dynamic"
 myc.metaClass.static.getStaticDynamicMethod = {"static dynamic closure value"}
 myc.metaClass.static.staticDynamicProperty = "static dynamic property value"
-
+List smm = myc.metaClass.getStaticMetaMethods()
 //if you know the name of the closure method you can get its value
 def res = myc.metaClass.getStaticMetaMethod("getStaticDynamicMethod", [] as Object[]).doMethodInvoke(myc, [] as Object[])
 println "myc get static method : [$res]"
