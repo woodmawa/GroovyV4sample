@@ -15,9 +15,9 @@ class DynamicExtendableClassTest {
 
 
     @Test
-    void testDeclaredStaticStuff () {
+    void testClassDeclaredStaticStuff () {
 
-         assertEquals ("static method returning string", DynamicExtendableClass.getDeclaredMethodStaticString())
+        assertEquals ("static method returning string", DynamicExtendableClass.getDeclaredMethodStaticString())
         assertEquals ("declared static string",  DynamicExtendableClass.declaredStaticString)
         assert DynamicExtendableClass.metaClass.getClass() == ExpandoMetaClass
     }
