@@ -1,5 +1,13 @@
 package script
 
+
+import java.lang.reflect.Field
+import java.lang.reflect.Method
+import java.lang.reflect.Modifier
+
+import org.codehaus.groovy.reflection.ReflectionUtils
+
+
 class SomeClass {
     static String classDeclaredStatName = "in class definition static name"
 
@@ -33,6 +41,32 @@ res = myc.metaClass.getMetaMethods() //works and returns list of metaMethods
 
 //This is the only method for static's in MOP - this works but you have to know the name of the method in advance
 res = myc.metaClass.getStaticMetaMethod("dynStaticMethod", [] as ArrayList)
+assert res
+
+boolean hasProp = myc.metaClass.hasProperty (myc, 'dynProp')
+assert hasProp
+
+
+def getStaticProperty (def obj, String pname) {
+
+    Class clazz = obj.getClass()
+    MetaClass mc = clazz.metaClass
+    ExpandoMetaClass.ExpandoMetaProperty stat = mc.static
+
+    String camelCaseName = pname[0].toUpperCase() + pname.substring (1)
+
+    List props = clazz.getDeclaredFields().findAll {it.name == pname && Modifier.isStatic(it.modifiers) }
+
+    def props2 = clazz.getDeclaredMethods()  //.findAll {it.name == "get$camelCaseName"}
+
+    def props3 = mc.getProperties()
+   props
+}
+
+
+def ans = getStaticProperty(myc, 'classDeclaredStatName')
+ans
+
 
 //these fucntions are missing from MOP and would enable you to query for static props/methods
 res = myc.metaClass.getStaticMetaMethods()  //this method doesnt exist in MOP api
