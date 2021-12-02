@@ -141,19 +141,9 @@ class WillsExpando {
     }
 
     /*
-     * use this as container for the WillsExpando to return calls on .static
+     * use this as container for the WillsExpando to return calls for .static
      */
     class StaticContainer  {
-
-        // ref to class static
-        private List staticProperties
-        private List staticMethods
-
-        /*
-        StaticContainer (staticProperties, staticMethods) {
-            this.staticProperties = staticProperties
-            this.staticMethods = staticMethods
-        }*/
 
         def propertyMissing (String name, value) {
             println "setting prop $name with value $value"
@@ -163,6 +153,16 @@ class WillsExpando {
         def propertyMissing (String name) {
             println "getting unknown prop $name "
             WillsExpando.getStaticProperty(name)
+        }
+
+        def methodMissing (String name, method) {
+            println "setting method $name with value $method"
+            WillsExpando.addStaticMethod(name, method)
+        }
+
+        def methodMissing (String name) {
+            println "getting method  $name "
+            WillsExpando.getStaticMethod (name)
         }
 
         def getProperties() {

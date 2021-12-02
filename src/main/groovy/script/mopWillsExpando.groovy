@@ -50,5 +50,5 @@ List l = mc.getStaticProperties()
 println "l2props : " + mc.static.properties
 
 println ".static gets : " + stat
-println " with content " + l + " and with " + l[0].class
+println " with content " + l[0] + " and with " + l[0].class
 
