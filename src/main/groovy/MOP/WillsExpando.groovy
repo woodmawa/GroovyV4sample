@@ -21,17 +21,13 @@ class WillsExpando {
     }
 
 
-    Map getStatic () {
-        Map stat = new ConcurrentHashMap([properties: staticMetaProperties.collect().asImmutable(),
-        methods: staticMetaMethods.collect().asImmutable()])
-        stat.getMetaClass().propertyMissing = {String name, value  -> println "setting prop$name with value $value"
-            WillsExpando.addStaticProperty(name, value)
-        }
-        stat
-    }
+    StaticContainer getStatic () {
+        new StaticContainer()  //(staticMetaProperties.collect(), staticMetaMethods.collect())
+     }
 
     static def addStaticProperty (String name , def value) {
         staticMetaProperties.put(name, value)
+        return null
     }
 
     static def removeStaticProperty (String name) {
@@ -121,5 +117,60 @@ class WillsExpando {
 
     def propertyMissing (String name, value) {
         addProperty(name, value)
+    }
+
+    //add static versions of propertyMissing
+    static def $static_propertyMissing (String name) {
+        //todo
+        //look in class flex attributes first, then in metaClass if anything matches
+        if (name == "static") {
+            return getStatic()
+        }
+        def prop = staticMetaProperties[name]
+        if (!prop) {
+            prop = this.getMetaClass().getMetaProperty(name)
+            if (!prop) {
+                throw new MissingPropertyException (name, WillsExpando)
+            }
+        }
+        prop
+    }
+
+    static def $static_propertyMissing (String name, value) {
+        staticMetaProperties.addStaticProperty(name, value)
+    }
+
+    /*
+     * use this as container for the WillsExpando to return calls on .static
+     */
+    class StaticContainer  {
+
+        // ref to class static
+        private List staticProperties
+        private List staticMethods
+
+        /*
+        StaticContainer (staticProperties, staticMethods) {
+            this.staticProperties = staticProperties
+            this.staticMethods = staticMethods
+        }*/
+
+        def propertyMissing (String name, value) {
+            println "setting prop $name with value $value"
+            WillsExpando.addStaticProperty(name, value)
+        }
+
+        def propertyMissing (String name) {
+            println "getting unknown prop $name "
+            WillsExpando.getStaticProperty(name)
+        }
+
+        def getProperties() {
+            WillsExpando.staticMetaProperties.collect().asImmutable()
+        }
+
+        def getMethods() {
+            WillsExpando.staticMetaMethods.collect().asImmutable()
+        }
     }
 }
