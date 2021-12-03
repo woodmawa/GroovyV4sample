@@ -1,6 +1,7 @@
 package MOP
 
 import groovy.transform.EqualsAndHashCode
+import org.codehaus.groovy.runtime.MethodClosure
 
 import java.util.concurrent.Callable
 import java.util.concurrent.ConcurrentHashMap
@@ -16,6 +17,10 @@ class WillsExpando {
     protected Map expandoMethods = new ConcurrentHashMap()
 
     String stdProp = "defaultClassProp"
+
+    def testMethod (String test) {
+        test + " : hello from test method"
+    }
 
     WillsExpando () {}
 
@@ -44,6 +49,7 @@ class WillsExpando {
     }
 
     static List<Map.Entry> getStaticProperties () {
+        //cant seem to add a static property using MOP - so just get the staticExpandoProperties here
         staticExpandoProperties.collect().asImmutable()
     }
 
@@ -60,7 +66,7 @@ class WillsExpando {
         staticExpandoMethods[name]
     }
 
-    static boolean hasStaticMetaProperty (String name) {
+    static boolean hasStaticExpandoProperty (String name) {
         staticExpandoProperties[name] ? true : false
     }
 
@@ -72,11 +78,12 @@ class WillsExpando {
     def addProperty (String name , def value) {
         if (value instanceof Closure || value instanceof Callable || value instanceof Function )
             addMethod (name, value )
-        expandoProperties.put(name, value)
+        else
+            expandoProperties.put(name, value)
     }
 
     def addProperties (Map props) {
-        expandoProperties.putAll(props)
+        props.each {prop, value -> addProperty (prop, value)}
     }
 
     def removeProperty (String name) {
@@ -137,10 +144,34 @@ class WillsExpando {
     }
 
     def getMethod (String name){
-        expandoMethods[name]
+        List<MetaMethod> lmm = this.metaClass.getMethods()
+        MetaMethod mm
+       if (mm = lmm.findResult{it.name == name ?it:null}) {
+           new MethodClosure (this, name)
+        } else {
+            expandoMethods[name]
+        }
     }
 
-    //voided by creating getProperty()
+    def invokeMethod (name, args) {
+        def mm
+        if ( mm = metaClass.getMetaMethod(name, args)) {
+            mm.invoke(name, args)
+        } else {
+            Closure cmm  = expandoMethods[name]
+            if (cmm) {
+                if (args)
+                    cmm.call(args)
+                else
+                    cmm.call()
+            }
+            else {
+                new MissingMethodException("Cant find method $name with $args to invoke")
+            }
+        }
+    }
+
+    //voided by creating getProperty() - this gets first dibs
     def propertyMissing (String name) {
         //todo
         //look in class flex attributes first, then in metaClass if anything matches
@@ -163,6 +194,24 @@ class WillsExpando {
         else
             addProperty(name, value)
     }
+
+   def methodMissing (String name, args) {
+        //invoked if youve don a call on the expando and it can't find one by normal path so try expandoMethods map
+        Closure method = expandoMethods[name]
+        if (!method) {
+            method = metaClass.getMetaMethod(name)
+            if (!method) {
+                throw new MissingPropertyException (name, WillsExpando)
+            }
+        }
+        method.delegate = this
+        if (method.maximumNumberOfParameters > 0)
+            method.call(args)
+        else
+            method.call()
+
+    }
+
 
     //add static versions of propertyMissing
     static def $static_propertyMissing (String name) {

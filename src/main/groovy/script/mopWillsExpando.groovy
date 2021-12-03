@@ -4,35 +4,16 @@ import MOP.WillsExpando
 
 import java.util.concurrent.ConcurrentHashMap
 
-Map bucket = [:]
-Map staticBucket = [:]
-class AA {}
-AA.getMetaClass().propertyMissing << {String name, value  -> println "setting prop $name with value $value"
-    bucket.put(name, value)
-
-}
-AA.getMetaClass().propertyMissing << {String name  -> println "getting unknown prop $name "
-    bucket.get(name)
-}
-AA.getMetaClass().$static_propertyMissing << {String name, value  -> println "setting static prop $name with value $value"
-    staticBucket.put(name, value)
-}
-AA.getMetaClass().$static_propertyMissing << {String name -> println "getting static prop $name "
-    staticBucket.get(name)
-}
-
-AA.statNewProp = "new stat prop"  //trigger adding new static property
-def statRes = AA.statNewProp
-
-def aa = new AA()
-aa.newProp = "my new prop"
-def res = aa.newProp
-assert res == "my new prop"
-
 WillsExpando mc = new WillsExpando()
 
 mc.foo = "bar"
 
+mc.func = {-> println "hello from dynamic method "}
+
+def f = mc.func ()
+
+def m = mc.getMethod("testMethod")
+println m()
 
 mc.addStaticProperty("myStaticProp", "static howdi")
 

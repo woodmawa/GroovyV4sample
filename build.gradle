@@ -21,10 +21,14 @@ dependencies {
     //implementation group: 'org.apache.groovy', name: 'groovy-all', version: '4.0.0-beta-2', ext: 'pom'
 
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.1'
-    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.8.1'
+    testImplementation 'org.junit.jupiter:junit-jupiter-engine:5.8.1'
+    test
     //testImplementation group: 'org.spockframework', name: 'spock-core', version: '2.0-groovy-3.0'
 }
 
 test {
-    useJUnitPlatform()
+    useJUnitPlatform ()
+            /*{
+        includeEngines 'junit-jupiter'
+    }*/
 }
