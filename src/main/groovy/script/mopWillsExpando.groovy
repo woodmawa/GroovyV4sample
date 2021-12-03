@@ -47,6 +47,15 @@ println "static prop readf was $val "
 
 List l = mc.getStaticProperties()
 
+mc.addProperty("dynamic prop", "flex value")
+def stdProp = mc.getProperty("stdProp")
+List props = mc.getProperties()
+
+MetaBeanProperty mbp = mc.getMetaProperty("dynamic prop")
+def dynVal = mbp.getter.invoke(mbp, [] as ArrayList)
+mbp.setter.invoke (mbp, "changed flex Value")
+dynVal = mbp.getter.invoke(mbp, [] as ArrayList)
+
 println "l2props : " + mc.static.properties
 
 println ".static gets : " + stat

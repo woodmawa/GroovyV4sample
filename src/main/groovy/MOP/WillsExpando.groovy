@@ -2,22 +2,25 @@ package MOP
 
 import groovy.transform.EqualsAndHashCode
 
+import java.util.concurrent.Callable
 import java.util.concurrent.ConcurrentHashMap
+import java.util.function.Function
 
 @EqualsAndHashCode (includeFields = true)
 class WillsExpando {
 
-    static protected Map staticMetaProperties = new ConcurrentHashMap()
-    static protected Map staticMetaMethods = new ConcurrentHashMap()
+    static protected Map staticExpandoProperties = new ConcurrentHashMap()
+    static protected Map staticExpandoMethods = new ConcurrentHashMap()
 
-    protected Map metaProperties = new ConcurrentHashMap()
-    protected Map metaMethods = new ConcurrentHashMap()
+    protected Map expandoProperties = new ConcurrentHashMap()
+    protected Map expandoMethods = new ConcurrentHashMap()
 
+    String stdProp = "defaultClassProp"
 
     WillsExpando () {}
 
     WillsExpando (Map initialProperties) {
-        metaProperties.putAll(initialProperties)
+        addProperties(initialProperties)
     }
 
 
@@ -26,49 +29,58 @@ class WillsExpando {
      }
 
     static def addStaticProperty (String name , def value) {
-        staticMetaProperties.put(name, value)
-        return null
+        if (value instanceof Closure || value instanceof Callable || value instanceof Function )
+            addStaticMethod (name, value )
+        else
+            staticExpandoProperties.put(name, value)
     }
 
-    static def removeStaticProperty (String name) {
-        staticMetaProperties.remove(name)
+    static void removeStaticProperty (String name) {
+        staticExpandoProperties.remove(name)
     }
 
     static def getStaticProperty (String name){
-        staticMetaProperties[name]
+        staticExpandoProperties[name]
     }
 
     static List<Map.Entry> getStaticProperties () {
-        staticMetaProperties.collect().asImmutable()
+        staticExpandoProperties.collect().asImmutable()
     }
 
     static def addStaticMethod (String name , def value) {
-        staticMetaMethods.put(name, value)
+        if (value instanceof Closure || value instanceof Callable || value instanceof Function)
+            staticExpandoMethods.put(name, value)
     }
 
-    static def removeStaticMethod (String name) {
-        staticMetaMethods.remove(name)
+    static void removeStaticMethod (String name) {
+        staticExpandoMethods.remove(name)
     }
 
     static def getStaticMethod (String name){
-        staticMetaMethods[name]
+        staticExpandoMethods[name]
     }
 
-    boolean hasStaticMetaProperty (String name) {
-        staticMetaProperties[name] ? true : false
+    static boolean hasStaticMetaProperty (String name) {
+        staticExpandoProperties[name] ? true : false
     }
 
     static List<Map.Entry>  getStaticMethods () {
-        staticMetaMethods.collect().asImmutable()
+        staticExpandoMethods.collect().asImmutable()
     }
 
 
     def addProperty (String name , def value) {
-        metaProperties.put(name, value)
+        if (value instanceof Closure || value instanceof Callable || value instanceof Function )
+            addMethod (name, value )
+        expandoProperties.put(name, value)
+    }
+
+    def addProperties (Map props) {
+        expandoProperties.putAll(props)
     }
 
     def removeProperty (String name) {
-        metaProperties.remove(name)
+        expandoProperties.remove(name)
     }
 
     def getProperty (String name){
@@ -76,26 +88,56 @@ class WillsExpando {
             return getStatic()
         }
         //check metaclass first
+        def prop
         if (metaClass.hasProperty(this, name)) {
-            return metaClass.getMetaProperty(name).getProperty(this)
-        }
+            prop =  metaClass.getMetaProperty(name).getProperty(this)
+        } else {
 
-        //ok go ahead and look in dynamic store next
-        def prop = metaProperties[name]
-        if (!prop){
-            throw new MissingPropertyException (name, WillsExpando)
+            //ok go ahead and look in dynamic store next
+            prop = expandoProperties[name]
+            if (!prop) {
+                throw new MissingPropertyException(name, WillsExpando)
+            }
         }
         prop
     }
 
-
-
-    boolean hasMetaProperty (String name) {
-        metaProperties[name] ? true : false
+    boolean hasProperty (String name) {
+        if (metaClass.hasProperty(this, name )){
+            return true
+        } else {
+            expandoProperties[name] ? true : false
+        }
     }
 
     List<Map.Entry> getProperties () {
-        metaProperties.collect().asImmutable()
+        List<MetaProperty> mps = metaClass.properties
+
+        // have to stop recursion on properties, and skip dynamic concurrent maps from showing
+        List l = []
+        for (mp in mps) {
+            def name = mp.name
+            if (name == "properties" || name == "methods" || name == "staticProperties" || name == "staticMethods")   //skip recursion here
+                continue
+            def value = mp.getProperty(this)
+            l << [(name): value].collect()[0]
+        }
+
+        def l2 = expandoProperties.collect()
+        (l + l2).asImmutable()
+    }
+
+    def addMethod (String name , def value) {
+        if (value instanceof Closure || value instanceof Callable || value instanceof Function)
+            expandoMethods.put (name, value)
+    }
+
+    def removeMethod (String name) {
+        expandoMethods.remove(name)
+    }
+
+    def getMethod (String name){
+        expandoMethods[name]
     }
 
     //voided by creating getProperty()
@@ -105,7 +147,7 @@ class WillsExpando {
         if (name == "static") {
             return getStatic()
         }
-        def prop = metaProperties[name]
+        def prop = expandoProperties[name]
         if (!prop) {
             prop = metaClass.getMetaProperty(name)
             if (!prop) {
@@ -116,7 +158,10 @@ class WillsExpando {
     }
 
     def propertyMissing (String name, value) {
-        addProperty(name, value)
+        if (value instanceof Closure || value instanceof Callable || value instanceof Function)
+            addMethod (name, value)
+        else
+            addProperty(name, value)
     }
 
     //add static versions of propertyMissing
@@ -124,9 +169,9 @@ class WillsExpando {
         //todo
         //look in class flex attributes first, then in metaClass if anything matches
         if (name == "static") {
-            return getStatic()
+            return getStatic()  //todo: not static method - will fail
         }
-        def prop = staticMetaProperties[name]
+        def prop = staticExpandoProperties[name]
         if (!prop) {
             prop = this.getMetaClass().getMetaProperty(name)
             if (!prop) {
@@ -137,7 +182,7 @@ class WillsExpando {
     }
 
     static def $static_propertyMissing (String name, value) {
-        staticMetaProperties.addStaticProperty(name, value)
+        staticExpandoProperties.addStaticProperty(name, value)
     }
 
     /*
@@ -166,11 +211,11 @@ class WillsExpando {
         }
 
         def getProperties() {
-            WillsExpando.staticMetaProperties.collect().asImmutable()
+            WillsExpando.staticExpandoProperties.collect().asImmutable()
         }
 
         def getMethods() {
-            WillsExpando.staticMetaMethods.collect().asImmutable()
+            WillsExpando.staticExpandoMethods.collect().asImmutable()
         }
     }
 }
