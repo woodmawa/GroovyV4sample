@@ -75,4 +75,21 @@ class WillsExpandoTest {
 
     }
 
+    @Test
+    void queryProperties () {
+        //get default properties
+        List<Map.Entry> props = we.properties
+
+        assert props.find{it.key.contains("stdProp")}.key == 'stdProp'  //standard class property
+        assert props.find {it.key.contains("class")}.key == "class"
+        assert props.find{it.key.contains("static")}.key == 'static'
+        assert props.size() == 3
+
+        we.dynProp = "added property"
+        props = we.properties
+        assert props.size() == 4
+        assert props.find{it.key.contains("dynProp")}.key == 'dynProp'
+
+
+    }
 }
