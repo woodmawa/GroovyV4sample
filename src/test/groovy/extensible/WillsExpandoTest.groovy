@@ -101,8 +101,8 @@ class WillsExpandoTest {
         assert props.find{it.key.contains("statProp")}.key == 'statProp'  //standard static class property
 
 
-        int csize
-        assert (csize = props.size()) == 1
+        int csize = props.size()
+        assert csize == 1
 
         we.addStaticProperty ("dynStatProp",  "added static property")
         props = we.staticProperties
@@ -110,5 +110,13 @@ class WillsExpandoTest {
         assert props.find{it.key.contains("dynStatProp")}.key == 'dynStatProp'
 
 
+    }
+
+    @Test
+    void queryStaticMethods () {
+        List<Map.Entry> smeths = we.getStaticMethods()
+
+        int msize = smeths.size()
+        assert msize == 1
     }
 }

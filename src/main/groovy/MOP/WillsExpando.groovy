@@ -87,8 +87,17 @@ class WillsExpando {
     }
 
     static List<Map.Entry>  getStaticMethods () {
+        //todo : not working yet
+        List<MetaMethod> mms = WillsExpando.metaClass.getMetaMethods().find{Modifier.isStatic (it.modifiers)}.collect()
 
-        staticExpandoMethods.collect().asImmutable()
+        List l1 =[]
+        for (mm in mms){
+            def name = mm.name
+            def value = {}
+            l1 << [(name): value]
+        }
+        List l2 = staticExpandoMethods.collect()
+        (l1 + l2).asImmutable()
     }
 
 
