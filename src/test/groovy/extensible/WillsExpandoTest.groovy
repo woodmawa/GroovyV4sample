@@ -92,4 +92,23 @@ class WillsExpandoTest {
 
 
     }
+
+    @Test
+    void queryStaticProperties () {
+        //get default static properties
+        List<Map.Entry> props = we.getStaticProperties()
+
+        assert props.find{it.key.contains("statProp")}.key == 'statProp'  //standard static class property
+
+
+        int csize
+        assert (csize = props.size()) == 1
+
+        we.addStaticProperty ("dynStatProp",  "added static property")
+        props = we.staticProperties
+        assert props.size() == csize + 1
+        assert props.find{it.key.contains("dynStatProp")}.key == 'dynStatProp'
+
+
+    }
 }

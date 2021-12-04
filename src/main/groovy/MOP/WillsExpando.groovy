@@ -1,8 +1,10 @@
 package MOP
 
+import com.sun.tools.jdi.JDWP
 import groovy.transform.EqualsAndHashCode
 import org.codehaus.groovy.runtime.MethodClosure
 
+import java.lang.reflect.Modifier
 import java.util.concurrent.Callable
 import java.util.concurrent.ConcurrentHashMap
 import java.util.function.Function
@@ -17,6 +19,7 @@ class WillsExpando {
     protected Map expandoMethods = new ConcurrentHashMap()
 
     String stdProp = "defaultClassProp"
+    static String statProp = "defaultClassStaticProp"
 
     def testMethod (String test) {
         test + " : hello from test method"
@@ -49,8 +52,21 @@ class WillsExpando {
     }
 
     static List<Map.Entry> getStaticProperties () {
+        List<MetaProperty> mps = WillsExpando.metaClass.getProperties().find{Modifier.isStatic (it.modifiers)}.collect()
+
+        // have to stop recursion on properties, and skip dynamic concurrent maps from showing
+        List l = []
+        for (mp in mps) {
+            def name = mp.name
+            if (name == "properties" || name == "staticProperties" )   //skip recursion here
+                continue
+            def value = mp.getProperty(this)
+            l << [(name): value].collect()[0]
+        }
+
         //cant seem to add a static property using MOP - so just get the staticExpandoProperties here
-        staticExpandoProperties.collect().asImmutable()
+        List l2 = staticExpandoProperties.collect() //.asImmutable()
+        (l + l2).asImmutable()
     }
 
     static def addStaticMethod (String name , def value) {
@@ -71,6 +87,7 @@ class WillsExpando {
     }
 
     static List<Map.Entry>  getStaticMethods () {
+
         staticExpandoMethods.collect().asImmutable()
     }
 
@@ -125,6 +142,8 @@ class WillsExpando {
         for (mp in mps) {
             def name = mp.name
             if (name == "properties" || name == "methods" || name == "staticProperties" || name == "staticMethods")   //skip recursion here
+                continue
+            if (Modifier.isStatic(mp.modifiers))  //remove static entries from the list
                 continue
             def value = mp.getProperty(this)
             l << [(name): value].collect()[0]
