@@ -290,22 +290,18 @@ class WillsExpando {
     class StaticContainer  {
 
         def propertyMissing (String name, value) {
-            println "setting prop $name with value $value"
             WillsExpando.addStaticProperty(name, value)
         }
 
         def propertyMissing (String name) {
-            println "getting unknown prop $name "
             WillsExpando.getStaticProperty(name)
         }
 
         def methodMissing (String name, method) {
-            println "setting method $name with value $method"
             WillsExpando.addStaticMethod(name, method)
         }
 
         def methodMissing (String name) {
-            println "getting method  $name "
             WillsExpando.getStaticMethod (name)
         }
 

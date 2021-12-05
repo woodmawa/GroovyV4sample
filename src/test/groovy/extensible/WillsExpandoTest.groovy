@@ -117,6 +117,15 @@ class WillsExpandoTest {
         List<Map.Entry> smeths = we.getStaticMethods()
 
         int msize = smeths.size()
-        assert msize == 1
+        assert msize == 2  //two static sleep methods
+
+        we.addStaticMethod ("myStaticMethod", {"my static method"})
+        assert we.getStaticMethods().size() == msize + 1
+        Closure meth = we.getStaticMethod ("myStaticMethod")
+        assert meth() == "my static method"
+        assert meth.delegate == this
+        assert we.static.methods.size() == 1
+        assert we.static.properties.size() == 1 //there is an existing test static prop in the class
+        assert we.staticProperties[0].key == "statProp"
     }
 }
