@@ -184,7 +184,7 @@ class WillsExpando {
     }
 
     def getMethods() {
-        List<MetaProperty> mms = metaClass.methods
+        List<MetaProperty> mms = this.metaClass.methods
 
         // have to stop recursion on properties, and skip dynamic concurrent maps from showing
         List l = []
