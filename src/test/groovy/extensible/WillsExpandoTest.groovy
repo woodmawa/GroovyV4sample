@@ -109,6 +109,8 @@ class WillsExpandoTest {
         assert props.size() == csize + 1
         assert props.find{it.key.contains("dynStatProp")}.key == 'dynStatProp'
 
+        //remove so as not to muddy the static properties for other tests
+        we.removeStaticProperty("dynStatProp")
 
     }
 
@@ -121,11 +123,32 @@ class WillsExpandoTest {
 
         we.addStaticMethod ("myStaticMethod", {"my static method"})
         assert we.getStaticMethods().size() == msize + 1
-        Closure meth = we.getStaticMethod ("myStaticMethod")
-        assert meth() == "my static method"
-        assert meth.delegate == this
+        Closure method = we.getStaticMethod ("myStaticMethod")
+        assert method() == "my static method"
+        assert method.delegate == this
         assert we.static.methods.size() == 1
-        assert we.static.properties.size() == 1 //there is an existing test static prop in the class
-        assert we.staticProperties[0].key == "statProp"
+        assert we.static.properties.size() == 0 //there is an existing test static prop in the class
+
+        we.removeStaticMethod ("myStaticMethod") // remove for other tests
+        assert we.getStaticMethod ("myStaticMethod") == null
+    }
+
+    @Test
+    void testStaticContainer () {
+        WillsExpando.StaticContainer stat = we.static
+
+        List sprops = stat.properties
+        List smeths = stat.methods
+
+        assert stat.properties.size() == 0 //test dynStaticProp already defined
+        assert stat.methods.size() == 0  //two default sleep methods
+
+        we.addStaticProperty ("statProp", 42)
+        we.addStaticMethod ("statMethod", {})
+
+        assert stat.properties.size() == 1
+        assert stat.methods.size() == 1
+
+
     }
 }
