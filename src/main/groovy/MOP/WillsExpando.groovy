@@ -47,18 +47,20 @@ class WillsExpando {
         staticExpandoProperties.remove(name)
     }
 
+    //because this method is defined - it will show when querying metaClass.properties -
+    //so need to skip in getStaticProperties () as we want to exclude this from processing
     static def getStaticProperty (String name){
         staticExpandoProperties[name]
     }
 
     static List<Map.Entry> getStaticProperties () {
-        List<MetaProperty> mps = WillsExpando.metaClass.getProperties().find{Modifier.isStatic (it.modifiers)}.collect()
+        List<MetaProperty> mps = WillsExpando.metaClass.getProperties().findAll{Modifier.isStatic (it.modifiers)}.collect()
 
         // have to stop recursion on properties, and skip dynamic concurrent maps from showing
         List l = []
         for (mp in mps) {
             def name = mp.name
-            if (name == "properties" || name == "staticProperties" )   //skip recursion here
+            if (name == "properties" || name == "methods" ||name == "staticProperties" || name == "staticMethods")   //skip recursion here
                 continue
             def value = mp.getProperty(this)
             l << [(name): value].collect()[0]
@@ -88,12 +90,12 @@ class WillsExpando {
 
     static List<Map.Entry>  getStaticMethods () {
         //todo : not working yet
-        List<MetaMethod> mms = WillsExpando.metaClass.getMetaMethods().find{Modifier.isStatic (it.modifiers)}.collect()
+        List<MetaMethod> mms = WillsExpando.metaClass.getMetaMethods().findAll{Modifier.isStatic (it.modifiers)}.collect()
 
         List l1 =[]
         for (mm in mms){
             def name = mm.name
-            def value = {}
+            def value = new MethodClosure (WillsExpando,name)
             l1 << [(name): value]
         }
         List l2 = staticExpandoMethods.collect()
@@ -181,6 +183,26 @@ class WillsExpando {
         }
     }
 
+    def getMethods() {
+        List<MetaProperty> mms = metaClass.methods
+
+        // have to stop recursion on properties, and skip dynamic concurrent maps from showing
+        List l = []
+        for (mm in mms) {
+            def name = mm.name
+            if (name == "properties" || name == "methods" || name == "staticProperties" || name == "staticMethods")   //skip recursion here
+                continue
+            if (Modifier.isStatic(mm.modifiers))  //remove static entries from the list
+                continue
+            def value = new MethodClosure (WillsExpando, name)
+            value.delegate = this
+            l << [(name): value].collect()[0]  //get the  Map.Entry part
+        }
+
+        def l2 = expandoProperties.collect()
+        (l + l2).asImmutable()
+
+    }
     def invokeMethod (name, args) {
         def mm
         if ( mm = metaClass.getMetaMethod(name, args)) {
