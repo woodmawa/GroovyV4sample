@@ -293,7 +293,6 @@ class WillsExpando {
 
     //add static versions of propertyMissing
     static def $static_propertyMissing (String name) {
-        //todo
         //look in class flex attributes first, then in metaClass if anything matches
         def prop = staticExpandoProperties[name]
         if (!prop) {
@@ -306,7 +305,7 @@ class WillsExpando {
     }
 
     static void $static_propertyMissing (String name, value) {
-        staticExpandoProperties.addStaticProperty(name, value)
+        staticExpandoProperties.put (name, value)
     }
 
     /*

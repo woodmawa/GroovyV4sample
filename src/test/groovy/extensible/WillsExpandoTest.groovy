@@ -168,4 +168,18 @@ class WillsExpandoTest {
         assert stat.methods.size() == 0
 
     }
+
+    @Test
+    void testAddingStaticToClassDirectly () {
+        WillsExpando.statProp = "new direct adding stat prop"
+
+        def sprop = WillsExpando.getStaticProperty("statProp")
+
+        def sprop2 =  WillsExpando.statProp  //does this invoke $static_propertyMissing?
+
+        assert sprop2 == "new direct adding stat prop"
+
+        //tidy up for other tests
+        WillsExpando.removeStaticProperty("statProp")
+    }
 }
