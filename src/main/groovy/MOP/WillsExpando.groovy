@@ -47,43 +47,46 @@ class WillsExpando {
     }
 
     //if used on a class itself we don't know the class or instance so we have to pass as a param
-    static List<Map.Entry> getStaticProperties (def ofThing) {
-        List mpl = ofThing.metaClass.getProperties()
+    static Map getStaticProperties (def ofThing) {
 
-        List<MetaProperty> mps = ofThing.metaClass.getProperties().findAll{Modifier.isStatic (it.modifiers)}.collect()
+        List mps = ofThing.metaClass.getProperties().findAll{Modifier.isStatic (it.modifiers)}.collect()
 
         // have to stop recursion on properties, and skip dynamic concurrent maps from showing
-        List l1 = []
+        Map m1 = [:]
         for (mp in mps) {
             def name = mp.name
             if (name == "properties" || name == "methods" ||name == "staticProperties" || name == "staticMethods")   //skip recursion here
                 continue
             def value = mp.getProperty(this)
-            l1 << [(name): value].collect()[0]
+            m1 << [(name): value]
         }
 
         //cant seem to add a static property using MOP - so just get the staticExpandoProperties here
-        List l2 = staticExpandoProperties.collect() //.asImmutable()
-        (l1 + l2).asImmutable()
+        //List l2 = staticExpandoProperties.collect() //.asImmutable()
+        //(l1 + l2).asImmutable()
+        m1.putAll(staticExpandoProperties)
+        m1
     }
 
     //non static form where we know the instance context class
-    List<Map.Entry> getStaticProperties () {
-        List<MetaProperty> mps = this.metaClass.getProperties().findAll{Modifier.isStatic (it.modifiers)}.collect()
+    Map getStaticProperties () {
+        List mps = this.metaClass.getProperties().findAll{Modifier.isStatic (it.modifiers)}.collect()
 
         // have to stop recursion on properties, and skip dynamic concurrent maps from showing
-        List l1 = []
+        Map m1 = [:]
         for (mp in mps) {
             def name = mp.name
             if (name == "properties" || name == "methods" ||name == "staticProperties" || name == "staticMethods")   //skip recursion here
                 continue
             def value = mp.getProperty(this)
-            l1 << [(name): value].collect()[0]
+            m1 << [(name): value]
         }
 
         //cant seem to add a static property using MOP - so just get the staticExpandoProperties here
-        List l2 = staticExpandoProperties.collect() //.asImmutable()
-        (l1 + l2).asImmutable()
+        //List l2 = staticExpandoProperties.collect() //.asImmutable()
+        //(l1 + l2).asImmutable()
+        m1.putAll (staticExpandoProperties)
+        m1
     }
 
     static def addStaticMethod (String name , def value) {
@@ -104,32 +107,32 @@ class WillsExpando {
     }
 
     //if used on static class we dont know the context so we have to pass as a param to get the MetaMethods
-    static List<Map.Entry>  getStaticMethods (ofThing) {
+    static Map  getStaticMethods (ofThing) {
         //todo : not working yet
         List<MetaMethod> mms = ofThing.metaClass.getMetaMethods().findAll{Modifier.isStatic (it.modifiers)}.collect()
 
-        List l1 =[]
+        Map m1 = [:]
         for (mm in mms){
             def name = mm.name
             def value = new MethodClosure (WillsExpando,name)
-            l1 << [(name): value]
+            m1 << [(name): value]
         }
-        List l2 = staticExpandoMethods.collect()
-        (l1 + l2).asImmutable()
+        m1.putAll (staticExpandoMethods)
+        m1
     }
 
     //non static form as we know the call instance context here
-    List<Map.Entry>  getStaticMethods () {
+    Map  getStaticMethods () {
         List<MetaMethod> mms = this.metaClass.getMetaMethods().findAll{Modifier.isStatic (it.modifiers)}.collect()
 
-        List l1 =[]
+        Map m1 =[:]
         for (mm in mms){
             def name = mm.name
             def value = new MethodClosure (WillsExpando,name)
-            l1 << [(name): value]
+            m1 << [(name): value]
         }
-        List l2 = staticExpandoMethods.collect()
-        (l1 + l2).asImmutable()
+        m1.putAll(staticExpandoMethods)
+        m1
     }
 
     def addProperty (String name , def value) {
@@ -150,6 +153,10 @@ class WillsExpando {
     def getProperty (String name){
         if (name == "static") {
             return getStatic()
+        } else if (name == "staticProperties" ){
+            return getStaticProperties()
+        } else if (name == "properties") {
+            return getProperties()
         }
         //check metaclass first
         def prop
@@ -174,11 +181,11 @@ class WillsExpando {
         }
     }
 
-    List<Map.Entry> getProperties () {
+    Map getProperties () {
         List<MetaProperty> mps = metaClass.properties
 
         // have to stop recursion on properties, and skip dynamic concurrent maps from showing
-        List l = []
+        Map m1 = [:]
         for (mp in mps) {
             def name = mp.name
             if (name == "properties" || name == "methods" || name == "staticProperties" || name == "staticMethods")   //skip recursion here
@@ -186,11 +193,11 @@ class WillsExpando {
             if (Modifier.isStatic(mp.modifiers))  //remove static entries from the list
                 continue
             def value = mp.getProperty(this)
-            l << [(name): value].collect()[0]
+            m1 << [(name): value]
         }
 
-        def l2 = expandoProperties.collect()
-        (l + l2).asImmutable()
+        m1.putAll (expandoProperties)
+        m1
     }
 
     def addMethod (String name , def value) {
@@ -216,7 +223,7 @@ class WillsExpando {
         List<MetaProperty> mms = this.metaClass.metaMethods
 
         // have to stop recursion on properties, and skip dynamic concurrent maps from showing
-        List l = []
+        Map m1 = [:]
         for (mm in mms) {
             def name = mm.name
             if (name == "properties" || name == "methods" || name == "staticProperties" || name == "staticMethods")   //skip recursion here
@@ -224,14 +231,14 @@ class WillsExpando {
             if (Modifier.isStatic(mm.modifiers))  //remove static entries from the list
                 continue
             def value = new MethodClosure (WillsExpando, name)
-            value.delegate = this
-            l << [(name): value].collect()[0]  //get the  Map.Entry part
+            m1 << [(name): value]
         }
 
-        def l2 = expandoProperties.collect()
-        (l + l2).asImmutable()
+        m1.putAll(expandoProperties)
+        m1
 
     }
+
     def invokeMethod (name, args) {
         def mm
         if ( mm = metaClass.getMetaMethod(name, args)) {
@@ -331,11 +338,11 @@ class WillsExpando {
         }
 
         def getProperties() {
-            WillsExpando.staticExpandoProperties.collect().asImmutable()
+            WillsExpando.staticExpandoProperties
         }
 
         def getMethods() {
-            WillsExpando.staticExpandoMethods.collect().asImmutable()
+            WillsExpando.staticExpandoMethods
         }
     }
 }

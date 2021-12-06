@@ -67,18 +67,16 @@ class WillsExpandoTest {
         wtse.myProp = "my dynamic prop"
         wtse.myProp2 = "my 2nd dynamic prop"
 
-        List props = wtse.properties
+        Map props = wtse.properties
 
         assert props.size() == 5
-        assert props[0] instanceof Map.Entry
-        //assert props.sort() == [stdProp:defaultClassProp, class:MOP.WillsExpando, static: WillsExpando$StaticContainer@16423501, myProp=my dynamic prop, myProp2=my 2nd dynamic prop]
-
+        assert props["myProp"] == "my dynamic prop"
     }
 
     @Test
     void queryProperties () {
         //get default properties
-        List<Map.Entry> props = wtse.properties
+        Map props = wtse.properties
 
         assert props.find{it.key.contains("stdProp")}.key == 'stdProp'  //standard class property
         assert props.find {it.key.contains("class")}.key == "class"
@@ -97,7 +95,7 @@ class WillsExpandoTest {
     void queryStaticProperties () {
 
        //get default static properties
-        List<Map.Entry> props = wtse.staticProperties
+        Map props = wtse.staticProperties
 
         assert props.find{it.key.contains("statProp")}.key == 'statProp'  //standard static class property
 
@@ -117,7 +115,7 @@ class WillsExpandoTest {
 
     @Test
     void queryStaticMethods () {
-        List<Map.Entry> smeths = wtse.getStaticMethods(WillsTestSubExpando)
+        Map smeths = wtse.getStaticMethods(WillsTestSubExpando)
 
         int msize = smeths.size()
         assert msize == 2  //two static sleep methods
@@ -139,8 +137,8 @@ class WillsExpandoTest {
     void testStaticContainer () {
         WillsExpando.StaticContainer stat = wtse.static
 
-        List sprops = stat.properties
-        List smeths = stat.methods
+        Map sprops = stat.properties
+        Map smeths = stat.methods
 
         //initially the static.properties and methods, maps in WillsExpando start out empty
         assert stat.properties.size() == 0

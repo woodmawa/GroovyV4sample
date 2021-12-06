@@ -17,6 +17,10 @@ AAA.metaClass.myProp = 42  //is this done as static as its on class ?
 
 AAA example = new AAA()
 
+AAA aaa = new AAA()
+def meths = aaa.metaClass.getMethods()
+def mmeths = aaa.metaClass.getMetaMethods()
+
 List l = example.metaClass.properties.find{it.name == "myProp"}.collect()
 
 MetaProperty prop =  l[0]
