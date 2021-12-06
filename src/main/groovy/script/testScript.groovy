@@ -1,5 +1,6 @@
 package script
 
+import MOP.WillsExpando
 import org.codehaus.groovy.runtime.MethodClosure
 
 import java.lang.reflect.Modifier
@@ -21,5 +22,8 @@ List l = example.metaClass.properties.find{it.name == "myProp"}.collect()
 MetaProperty prop =  l[0]
 
 println prop.dump()  //returns ThreadManagedMetaBeanProperty
-assert Modifier.isStatic (prop.modifiers)  //fails it's not static internally
+assert Modifier.isStatic (prop.modifiers) == false  //fails it's not static internally
 
+class WillsSubExpando2 extends WillsExpando {
+
+}

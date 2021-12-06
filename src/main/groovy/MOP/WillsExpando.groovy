@@ -18,13 +18,6 @@ class WillsExpando {
     protected Map expandoProperties = new ConcurrentHashMap()
     protected Map expandoMethods = new ConcurrentHashMap()
 
-    String stdProp = "defaultClassProp"
-    static String statProp = "defaultClassStaticProp"
-
-    def testMethod (String test) {
-        test + " : hello from test method"
-    }
-
     WillsExpando () {}
 
     WillsExpando (Map initialProperties) {
@@ -33,7 +26,7 @@ class WillsExpando {
 
 
     StaticContainer getStatic () {
-        new StaticContainer()  //(staticMetaProperties.collect(), staticMetaMethods.collect())
+        new StaticContainer()
      }
 
     static def addStaticProperty (String name , def value) {
@@ -53,22 +46,44 @@ class WillsExpando {
         staticExpandoProperties[name]
     }
 
-    static List<Map.Entry> getStaticProperties () {
-        List<MetaProperty> mps = WillsExpando.metaClass.getProperties().findAll{Modifier.isStatic (it.modifiers)}.collect()
+    //if used on a class itself we don't know the class or instance so we have to pass as a param
+    static List<Map.Entry> getStaticProperties (def ofThing) {
+        List mpl = ofThing.metaClass.getProperties()
+
+        List<MetaProperty> mps = ofThing.metaClass.getProperties().findAll{Modifier.isStatic (it.modifiers)}.collect()
 
         // have to stop recursion on properties, and skip dynamic concurrent maps from showing
-        List l = []
+        List l1 = []
         for (mp in mps) {
             def name = mp.name
             if (name == "properties" || name == "methods" ||name == "staticProperties" || name == "staticMethods")   //skip recursion here
                 continue
             def value = mp.getProperty(this)
-            l << [(name): value].collect()[0]
+            l1 << [(name): value].collect()[0]
         }
 
         //cant seem to add a static property using MOP - so just get the staticExpandoProperties here
         List l2 = staticExpandoProperties.collect() //.asImmutable()
-        (l + l2).asImmutable()
+        (l1 + l2).asImmutable()
+    }
+
+    //non static form where we know the instance context class
+    List<Map.Entry> getStaticProperties () {
+        List<MetaProperty> mps = this.metaClass.getProperties().findAll{Modifier.isStatic (it.modifiers)}.collect()
+
+        // have to stop recursion on properties, and skip dynamic concurrent maps from showing
+        List l1 = []
+        for (mp in mps) {
+            def name = mp.name
+            if (name == "properties" || name == "methods" ||name == "staticProperties" || name == "staticMethods")   //skip recursion here
+                continue
+            def value = mp.getProperty(this)
+            l1 << [(name): value].collect()[0]
+        }
+
+        //cant seem to add a static property using MOP - so just get the staticExpandoProperties here
+        List l2 = staticExpandoProperties.collect() //.asImmutable()
+        (l1 + l2).asImmutable()
     }
 
     static def addStaticMethod (String name , def value) {
@@ -88,9 +103,10 @@ class WillsExpando {
         staticExpandoProperties[name] ? true : false
     }
 
-    static List<Map.Entry>  getStaticMethods () {
+    //if used on static class we dont know the context so we have to pass as a param to get the MetaMethods
+    static List<Map.Entry>  getStaticMethods (ofThing) {
         //todo : not working yet
-        List<MetaMethod> mms = WillsExpando.metaClass.getMetaMethods().findAll{Modifier.isStatic (it.modifiers)}.collect()
+        List<MetaMethod> mms = ofThing.metaClass.getMetaMethods().findAll{Modifier.isStatic (it.modifiers)}.collect()
 
         List l1 =[]
         for (mm in mms){
@@ -102,6 +118,19 @@ class WillsExpando {
         (l1 + l2).asImmutable()
     }
 
+    //non static form as we know the call instance context here
+    List<Map.Entry>  getStaticMethods () {
+        List<MetaMethod> mms = this.metaClass.getMetaMethods().findAll{Modifier.isStatic (it.modifiers)}.collect()
+
+        List l1 =[]
+        for (mm in mms){
+            def name = mm.name
+            def value = new MethodClosure (WillsExpando,name)
+            l1 << [(name): value]
+        }
+        List l2 = staticExpandoMethods.collect()
+        (l1 + l2).asImmutable()
+    }
 
     def addProperty (String name , def value) {
         if (value instanceof Closure || value instanceof Callable || value instanceof Function )
@@ -184,7 +213,7 @@ class WillsExpando {
     }
 
     def getMethods() {
-        List<MetaProperty> mms = this.metaClass.methods
+        List<MetaProperty> mms = this.metaClass.metaMethods
 
         // have to stop recursion on properties, and skip dynamic concurrent maps from showing
         List l = []
@@ -221,7 +250,6 @@ class WillsExpando {
         }
     }
 
-    //voided by creating getProperty() - this gets first dibs
     def propertyMissing (String name) {
         //todo
         //look in class flex attributes first, then in metaClass if anything matches
@@ -246,7 +274,7 @@ class WillsExpando {
     }
 
    def methodMissing (String name, args) {
-        //invoked if youve don a call on the expando and it can't find one by normal path so try expandoMethods map
+        //invoked if you've done a call on the expando and it can't find one by normal path so try expandoMethods map
         Closure method = expandoMethods[name]
         if (!method) {
             method = metaClass.getMetaMethod(name)
@@ -267,9 +295,6 @@ class WillsExpando {
     static def $static_propertyMissing (String name) {
         //todo
         //look in class flex attributes first, then in metaClass if anything matches
-        if (name == "static") {
-            return getStatic()  //todo: not static method - will fail
-        }
         def prop = staticExpandoProperties[name]
         if (!prop) {
             prop = this.getMetaClass().getMetaProperty(name)
@@ -280,12 +305,13 @@ class WillsExpando {
         prop
     }
 
-    static def $static_propertyMissing (String name, value) {
+    static void $static_propertyMissing (String name, value) {
         staticExpandoProperties.addStaticProperty(name, value)
     }
 
     /*
-     * use this as container for the WillsExpando to return calls for .static
+     * use this as container for the WillsExpando to return on calls for .static
+     * puts new properties and classes into the appropriate static map
      */
     class StaticContainer  {
 

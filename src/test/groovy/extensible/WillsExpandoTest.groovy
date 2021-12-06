@@ -2,11 +2,10 @@ package extensible
 
 import MOP.WillsExpando
 import org.codehaus.groovy.runtime.MethodClosure
-import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 
-import static org.junit.jupiter.api.Assertions.*
+
 
 class WillsExpandoTest {
 
@@ -18,56 +17,57 @@ class WillsExpandoTest {
         }
     }
 
-    WillsExpando we
+
+    WillsTestSubExpando wtse
 
     @BeforeEach
     void init() {
-        we = new WillsExpando()
+        wtse = new WillsTestSubExpando()
     }
 
     @Test
     void testStandardPropertyExists () {
-        assert we.getProperty("stdProp") == "defaultClassProp"
+        assert wtse.getProperty("stdProp") == "defaultClassProp"
     }
 
     @Test
     void testStandardMethodExists() {
-        MethodClosure m = we.getMethod ("testMethod")
+        MethodClosure m = wtse.getMethod ("testMethod")
         assert m
         assert m("will") == "will" + " : hello from test method"
     }
 
     @Test
     void testNormalGetClass() {
-        assert we.getClass() == WillsExpando
+        assert wtse.getClass() == WillsTestSubExpando
     }
 
     @Test
     void addDynamicProperty () {
-        we.myProp = "my dynamic prop"
+        wtse.myProp = "my dynamic prop"
 
-        assert we.myProp == "my dynamic prop"
+        assert wtse.myProp == "my dynamic prop"
     }
 
     @Test
     void getUnspecifiedProperty () {
 
-        shouldFail ({ we.anotherProp == null}, MissingPropertyException)
+        shouldFail ({ wtse.anotherProp == null}, MissingPropertyException)
     }
 
     @Test
     void addDynamicPropertyByMethod () {
-        we.addProperty("myProp", "my dynamic prop")
+        wtse.addProperty("myProp", "my dynamic prop")
 
-        assert we.getProperty("myProp") == "my dynamic prop"
+        assert wtse.getProperty("myProp") == "my dynamic prop"
     }
 
     @Test
     void addDynamicPropertiesAndCheckProperties () {
-        we.myProp = "my dynamic prop"
-        we.myProp2 = "my 2nd dynamic prop"
+        wtse.myProp = "my dynamic prop"
+        wtse.myProp2 = "my 2nd dynamic prop"
 
-        List props = we.properties
+        List props = wtse.properties
 
         assert props.size() == 5
         assert props[0] instanceof Map.Entry
@@ -78,15 +78,15 @@ class WillsExpandoTest {
     @Test
     void queryProperties () {
         //get default properties
-        List<Map.Entry> props = we.properties
+        List<Map.Entry> props = wtse.properties
 
         assert props.find{it.key.contains("stdProp")}.key == 'stdProp'  //standard class property
         assert props.find {it.key.contains("class")}.key == "class"
         assert props.find{it.key.contains("static")}.key == 'static'
         assert props.size() == 3
 
-        we.dynProp = "added property"
-        props = we.properties
+        wtse.dynProp = "added property"
+        props = wtse.properties
         assert props.size() == 4
         assert props.find{it.key.contains("dynProp")}.key == 'dynProp'
 
@@ -95,8 +95,9 @@ class WillsExpandoTest {
 
     @Test
     void queryStaticProperties () {
-        //get default static properties
-        List<Map.Entry> props = we.getStaticProperties()
+
+       //get default static properties
+        List<Map.Entry> props = wtse.staticProperties
 
         assert props.find{it.key.contains("statProp")}.key == 'statProp'  //standard static class property
 
@@ -104,51 +105,67 @@ class WillsExpandoTest {
         int csize = props.size()
         assert csize == 1
 
-        we.addStaticProperty ("dynStatProp",  "added static property")
-        props = we.staticProperties
+        wtse.addStaticProperty ("dynStatProp",  "added static property")
+        props = wtse.getStaticProperties (WillsTestSubExpando)
         assert props.size() == csize + 1
         assert props.find{it.key.contains("dynStatProp")}.key == 'dynStatProp'
 
         //remove so as not to muddy the static properties for other tests
-        we.removeStaticProperty("dynStatProp")
+        wtse.removeStaticProperty("dynStatProp")
 
     }
 
     @Test
     void queryStaticMethods () {
-        List<Map.Entry> smeths = we.getStaticMethods()
+        List<Map.Entry> smeths = wtse.getStaticMethods(WillsTestSubExpando)
 
         int msize = smeths.size()
         assert msize == 2  //two static sleep methods
 
-        we.addStaticMethod ("myStaticMethod", {"my static method"})
-        assert we.getStaticMethods().size() == msize + 1
-        Closure method = we.getStaticMethod ("myStaticMethod")
+        wtse.addStaticMethod ("myStaticMethod", {"my static method"})
+        assert wtse.staticMethods.size() == msize + 1
+        Closure method = wtse.getStaticMethod ("myStaticMethod")
         assert method() == "my static method"
         assert method.delegate == this
-        assert we.static.methods.size() == 1
-        assert we.static.properties.size() == 0 //there is an existing test static prop in the class
+        assert wtse.static.methods.size() == 1
+        assert wtse.static.properties.size() == 0 //there is an existing test static prop in the class
 
-        we.removeStaticMethod ("myStaticMethod") // remove for other tests
-        assert we.getStaticMethod ("myStaticMethod") == null
+        //clean up statics for next test
+        wtse.removeStaticMethod ("myStaticMethod") // remove for other tests
+        assert wtse.getStaticMethod ("myStaticMethod") == null
     }
 
     @Test
     void testStaticContainer () {
-        WillsExpando.StaticContainer stat = we.static
+        WillsExpando.StaticContainer stat = wtse.static
 
         List sprops = stat.properties
         List smeths = stat.methods
 
-        assert stat.properties.size() == 0 //test dynStaticProp already defined
-        assert stat.methods.size() == 0  //two default sleep methods
+        //initially the static.properties and methods, maps in WillsExpando start out empty
+        assert stat.properties.size() == 0
+        assert stat.methods.size() == 0
 
-        we.addStaticProperty ("statProp", 42)
-        we.addStaticMethod ("statMethod", {})
+        wtse.addStaticProperty ("statProp", 42)
+        wtse.addStaticMethod ("statMethod", {})
 
-        assert stat.properties.size() == 1
+        stat.anotherStatProp = 100
+
+        //refresh unmodifiable lists
+        sprops = stat.properties
+        smeths = stat.methods
+
+        assert stat.anotherStatProp == 100 //stat.properties.anotherStatProp == 100
+
+        assert stat.properties.size() == 2
         assert stat.methods.size() == 1
 
+        //clean up statics for other tests
+        wtse.removeStaticProperty("statProp")
+        wtse.removeStaticMethod("statMethod")
+        wtse.removeStaticProperty ("anotherStatProp")
+        assert stat.properties.size() == 0
+        assert stat.methods.size() == 0
 
     }
 }
