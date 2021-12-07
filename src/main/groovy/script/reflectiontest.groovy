@@ -148,6 +148,7 @@ def getLambdaFromReflectionMethod(Class<?> returnClass, Object instance, String 
 }
 
 //object to invoke reflected call on
+//                                                       returnType        obj instance      methodName
 Supplier<String> lambda = getLambdaFromReflectionMethod (Supplier<String>, myClos, 'call' )
 String val = lambda ()  //invoke get() on Supplier
 println val
