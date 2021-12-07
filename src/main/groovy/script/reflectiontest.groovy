@@ -9,7 +9,12 @@ import org.codehaus.groovy.runtime.metaclass.NewInstanceMetaMethod
 import org.codehaus.groovy.runtime.metaclass.NewMetaMethod
 import org.codehaus.groovy.runtime.metaclass.NewStaticMetaMethod
 
+import java.lang.invoke.LambdaMetafactory
+import java.lang.invoke.MethodHandle
+import java.lang.invoke.MethodHandles
+import java.lang.invoke.MethodType
 import java.lang.reflect.Method
+import java.util.function.Supplier
 
 class Dummy {
     def someMethod () { println "\t(someMethod) hello"}
@@ -98,6 +103,37 @@ dyn.invoke(dummy)
 
 Inspector ins = new Inspector(clos)
 println ins.propertyInfo
+
+
+//try this
+Closure myClos = {"dynamic method returned String result"}
+
+//get reflection Method for closures "call" method name
+ Method reflectCall = Closure.class.getMethod ("call")
+
+MethodHandles.Lookup lkup= MethodHandles.lookup()
+MethodHandle handle  = lkup.unreflect(reflectCall)
+
+//now get a callSite for the handle
+java.lang.invoke.CallSite callSite = LambdaMetafactory.metafactory(
+        //method handle lookup to use
+        lkup,
+        //invoked name, name of method on Supplier interface
+        "get",
+        //expected signature of the callsite, invoked type, here invoked arg is Closure and returns Supplier
+        MethodType.methodType(Supplier.class, Closure.class),
+        // signature and return type of method to be implemented  by the function object, type erasure, Supplier will return an Object
+        MethodType.methodType (Object.class),
+        //implMethod handle that does the work - the handle for closure call()
+        handle,
+        //signature and return type that should forced dynamically at invocation.  supplier method real signature  accepts no params and returns string
+        MethodType.methodType(String.class)
+)
+
+def lambda = (Supplier<String>)callSite.getTarget().bindTo(myClos).invokeWithArguments()
+
+String val = lambda.get()
+println val
 
 /*
 MethodHandles.Lookup lkup= MethodHandles.lookup()
