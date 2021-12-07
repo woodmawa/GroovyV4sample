@@ -91,12 +91,12 @@ refclos()
 //MethodClosure mclos2 = new MethodClosure (dummy,  "someMethod")
 //println mclos2.method
 
-def getmethodArgTypes(String name, Object[] argTypes) {
+def getMethodArgTypes(String name, Object[] argTypes) {
     //just converts arg values into classes of each arg
     Class[] classes = MetaClassHelper.castArgumentsToClassArray (argTypes)
 }
 
-List l = getmethodArgTypes ("dynMethod", [1, "two"] as Object[])
+List l = getMethodArgTypes ("dynMethod", [1, "two"] as Object[])
 
 def dyn = dummy.metaClass.getMetaMethod("dynMethod")
 dyn.invoke(dummy)
@@ -109,38 +109,46 @@ println ins.propertyInfo
 Closure myClos = {"dynamic method returned String result"}
 
 //get reflection Method for closures "call" method name
- Method reflectCall = Closure.class.getMethod ("call")
+ Method reflectedCall = Closure.class.getMethod ("call")
 
-MethodHandles.Lookup lkup= MethodHandles.lookup()
-MethodHandle handle  = lkup.unreflect(reflectCall)
 
-//now get a callSite for the handle
-java.lang.invoke.CallSite callSite = LambdaMetafactory.metafactory(
-        //method handle lookup to use
-        lkup,
-        //invoked name, name of method on Supplier interface
-        "get",
-        //expected signature of the callsite, invoked type, here invoked arg is Closure and returns Supplier
-        MethodType.methodType(Supplier.class, Closure.class),
-        // signature and return type of method to be implemented  by the function object, type erasure, Supplier will return an Object
-        MethodType.methodType (Object.class),
-        //implMethod handle that does the work - the handle for closure call()
-        handle,
-        //signature and return type that should forced dynamically at invocation.  supplier method real signature  accepts no params and returns string
-        MethodType.methodType(String.class)
-)
+def getLambdaFromReflectionMethod(Class<?> returnClass, Object instance, String methodName, Object[] args) {
+    Method reflectedCall
+    MethodHandles.Lookup lkup= MethodHandles.lookup()
 
-def lambda = (Supplier<String>)callSite.getTarget().bindTo(myClos).invokeWithArguments()
+    Class runtimeClazz = instance.getClass()
+    Class closClazz = Closure.class
+    if (instance instanceof Closure ){
+        reflectedCall = Closure.class.getMethod (methodName)
+    } else {
+        reflectedCall = instance.class.getMethod(methodName, MetaClassHelper.castArgumentsToClassArray (args) )
+    }
+    MethodHandle handle  = lkup.unreflect(reflectedCall)
 
-String val = lambda.get()
+    Class clazz = instance instanceof Closure ? Closure.class : instance.getClass()
+
+    //now get a callSite for the handle - https://wttech.blog/blog/2020/method-handles-and-lambda-metafactory/
+    java.lang.invoke.CallSite callSite = LambdaMetafactory.metafactory(
+            //method handle lookup to use
+            lkup,
+            //invoked name, name of method on Supplier interface
+            "get",
+            //expected signature of the callsite, invoked type, here invoked arg is Closure and returns Supplier
+            //                   -- ret type --   -- invoked type -- on bindTo
+            MethodType.methodType(returnClass, clazz),
+            // signature and return type of method to be implemented  by the function object, type erasure, Supplier will return an Object
+            MethodType.methodType (Object.class),
+            //implMethod handle that does the work - the handle for closure call()
+            handle,
+            //signature and return type that should be forced dynamically at invocation.  supplier method real signature  accepts no params and returns string
+            MethodType.methodType(returnClass)
+    )
+
+    return callSite.getTarget().bindTo(instance).invokeWithArguments().asType(returnClass)
+}
+
+//object to invoke reflected call on
+Supplier<String> lambda = getLambdaFromReflectionMethod (Supplier<String>, myClos, 'call' )
+String val = lambda ()  //invoke get() on Supplier
 println val
-
-/*
-MethodHandles.Lookup lkup= MethodHandles.lookup()
-MethodType mt = MethodType.methodType(Object.class)
-MethodHandle handle = lkup.findVirtual(clos.class, "doCall", mt)
-
-def res = (Object) handle.invokeExact(clos,"doCall")
-res
-*/
 
