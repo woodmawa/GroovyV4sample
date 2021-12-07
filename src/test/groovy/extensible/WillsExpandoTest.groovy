@@ -115,10 +115,11 @@ class WillsExpandoTest {
 
     @Test
     void queryStaticMethods () {
+        //only gives map of name, and value
         Map smeths = wtse.getStaticMethods(WillsTestSubExpando)
 
         int msize = smeths.size()
-        assert msize == 2  //two static sleep methods
+        assert msize == 1  //two static sleep methods
 
         wtse.addStaticMethod ("myStaticMethod", {"my static method"})
         assert wtse.staticMethods.size() == msize + 1
