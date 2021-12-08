@@ -14,6 +14,7 @@ import java.lang.invoke.MethodHandle
 import java.lang.invoke.MethodHandles
 import java.lang.invoke.MethodType
 import java.lang.reflect.Method
+import java.util.function.Function
 import java.util.function.Supplier
 
 class Dummy {
@@ -24,6 +25,11 @@ Dummy.metaClass.dynMethod = {println "\t(metaClass: dynMethod) hello"}  //extend
 
 Dummy dummy = new Dummy()
 
+Function<Object, String> func = {it -> "\t(function) hello"}
+println func.apply()
+
+Supplier<String> supplier = {-> "\t(supplier) hello"}
+println supplier.get()
 
 //use java reflection here
 List<Method> lmeths = Dummy.getDeclaredMethods()
@@ -112,43 +118,55 @@ Closure myClos = {"dynamic method returned String result"}
  Method reflectedCall = Closure.class.getMethod ("call")
 
 
-def getLambdaFromReflectionMethod(Class<?> returnClass, Object instance, String methodName, Object[] args) {
+def getLambdaFromReflectionMethod(Class<?> returnClass, Object instance, String name, Object[] args) {
     Method reflectedCall
-    MethodHandles.Lookup lkup= MethodHandles.lookup()
+    MethodHandles.Lookup lookup= MethodHandles.lookup()
+
+    String methodName
+    switch (returnClass) {
+        case Supplier -> methodName = "get"
+        case Function -> methodName = "accept"
+        default -> methodName = "accept"
+    }
 
     Class runtimeClazz = instance.getClass()
     Class closClazz = Closure.class
     if (instance instanceof Closure ){
-        reflectedCall = Closure.class.getMethod (methodName)
+        reflectedCall = Closure.class.getMethod ("call")
     } else {
         reflectedCall = instance.class.getMethod(methodName, MetaClassHelper.castArgumentsToClassArray (args) )
     }
-    MethodHandle handle  = lkup.unreflect(reflectedCall)
+    MethodHandle handle  = lookup.unreflect(reflectedCall)
 
     Class clazz = instance instanceof Closure ? Closure.class : instance.getClass()
 
     //now get a callSite for the handle - https://wttech.blog/blog/2020/method-handles-and-lambda-metafactory/
     java.lang.invoke.CallSite callSite = LambdaMetafactory.metafactory(
             //method handle lookup to use
-            lkup,
+            lookup,
             //invoked name, name of method on Supplier interface
-            "get",
-            //expected signature of the callsite, invoked type, here invoked arg is Closure and returns Supplier
+            methodName,
+            //invokedType: expected signature of the callsite, The parameter types represent the types of capture variables, here invoked arg is Closure and returns Supplier
             //                   -- ret type --   -- invoked type -- on bindTo
             MethodType.methodType(returnClass, clazz),
-            // signature and return type of method to be implemented  by the function object, type erasure, Supplier will return an Object
+            // samMthodType: signature and return type of method to be implemented  by the function object, type erasure, Supplier will return an Object
             MethodType.methodType (Object.class),
             //implMethod handle that does the work - the handle for closure call()
             handle,
-            //signature and return type that should be forced dynamically at invocation.  supplier method real signature  accepts no params and returns string
+            //instantiatedMethodType: signature and return type that should be forced dynamically at invocation.
+            //This may be the same as samMethodType, or may be a specialization of it.
+            //supplier method real signature  accepts no params and returns string
             MethodType.methodType(returnClass)
     )
 
-    return callSite.getTarget().bindTo(instance).invokeWithArguments().asType(returnClass)
+    MethodHandle factory = callSite.getTarget()
+
+    return ( factory.bindTo(instance).invokeWithArguments() ).asType(returnClass)
 }
 
 //object to invoke reflected call on
 //                                                       returnType        obj instance      methodName
+//Function lambda = getLambdaFromReflectionMethod (Function, myClos, 'call' )
 Supplier<String> lambda = getLambdaFromReflectionMethod (Supplier<String>, myClos, 'call' )
 String val = lambda ()  //invoke get() on Supplier
 println val
