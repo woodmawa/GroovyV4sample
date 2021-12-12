@@ -68,20 +68,23 @@ java.lang.invoke.CallSite callSite = LambdaMetafactory.metafactory(
         "get",
         //invokedType: expected signature of the callsite, The parameter types represent the types of capture variables, here invoked arg is Closure and returns Supplier
         //                   -- ret type --   -- invoked type -- on bindTo
-        factoryForFunctionMethodType,
+        MethodType.methodType(Supplier.class, ExampleClass.class),
+        //factoryForFunctionMethodType,
         //MethodType.methodType(Supplier.class, []),
         // samMthodType: signature and return type of method to be implemented  by the function object, type erasure, Supplier will return an Object
         MethodType.methodType (Object.class),
         //implMethod handle that does the work - the handle for closure call()
-        virtRef, //handle,  //lookup.findVirtual(ExampleClass.class, "getValue", MethodType.methodType (String.class)),
+        lookup.findVirtual(ExampleClass.class, "getValue", MethodType.methodType (String.class)),
+        //virtRef, //handle,  //lookup.findVirtual(ExampleClass.class, "getValue", MethodType.methodType (String.class)),
         //instantiatedMethodType: signature and return type that should be forced dynamically at invocation.
         //This may be the same as samMethodType, or may be a specialization of it.
         //supplier method real signature  accepts no params and returns string
-        virtRef.type()
+        MethodType.methodType (String.class)
+        //virtRef.type()
 )
 
 MethodHandle factory = callSite.getTarget()
 
-Supplier lambda =  (Supplier<String>) factory.invokeWithArguments(instance)
+Supplier lambda =  (Supplier<String>) factory.bindTo(instance).invokeWithArguments()
 def ret = lambda.get()
 println ret
