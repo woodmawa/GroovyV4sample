@@ -10,34 +10,8 @@ import java.lang.reflect.Method
 import java.util.function.Function
 import java.util.function.Supplier
 
-Closure exampleClosure = {"hello from closure"}
 
-MethodHandles.Lookup lookup= MethodHandles.lookup()
-MethodHandle closHandle = lookup.findVirtual(Closure.class, "call", MethodType.methodType (Object.class))
-java.lang.invoke.CallSite closureCallSite = LambdaMetafactory.metafactory(
-        lookup,
-        "get",  //invoked name, name of method on Supplier interface
-        //             -- req interface type -- from class     factory type required, get Supplier from Closure
-        MethodType.methodType(Supplier.class, Closure.class),
-        // samMthodType: signature and return type of method to be implemented  by the function object, type erasure, Supplier will return an Object
-        MethodType.methodType (Object.class),
-        //implMethod handle that does the work - the handle for closure call()
-        lookup.findVirtual(Closure.class, "call", MethodType.methodType (Object.class)),
-        //instantiatedMethodType: signature and return type that should be forced dynamically at invocation.
-        //This may be the same as samMethodType, or may be a specialization of it.
-        MethodType.methodType (Supplier.class)
-)
 
-MethodHandle closFactory = closureCallSite.getTarget()
-//binds instances as first arg of a method handle without invoking it
-Supplier closAsSupplier = closFactory.bindTo(exampleClosure).invokeWithArguments()
-
-//now invoke the lambda
-def closRes = closAsSupplier.get()      //this works!
-
-/**
- * now try generate a Supplier lambda for a concrete class
- */
 class ExampleClass {
     private String value = "hello"
 
@@ -49,24 +23,65 @@ class ExampleClass {
 
 ExampleClass instance = new ExampleClass()
 
-MethodHandle getter = lookup.unreflect (ExampleClass.class.getMethod('getValue'))
-MethodHandle getterDirect = lookup.findVirtual(ExampleClass.class, "getValue", MethodType.methodType (String.class))
+MethodHandles.Lookup lookup= MethodHandles.lookup()
 
-java.lang.invoke.CallSite methodCallSite = LambdaMetafactory.metafactory(
+
+// 2. Creates a MethodType
+//MethodType sourceMethodType = MethodType.methodType(String.class, []);
+//                                            ^-----------^        ^----------^
+//                                             return type         argument class
+
+// 3. Find the MethodHandle
+//MethodHandle metaHandle = lookup.findVirtual(ExampleClass.class, "getValue", sourceMethodType);
+//                                       ^----------^               ^-------------^
+//                                            |                     name of method
+//                             class from which method is accessed
+
+// 4. Invoke the method
+//String strVal
+//strVal = (String) metaHandle.bindTo(instance).invokeWithArguments()  // this works
+//                                  ^----^                  ^----^
+//                                    |                    argument
+//                       instance your class  to invoke the method on
+
+// strVal = (String) metaHandle.invokeExact(instance);  //throws java.lang.UnsupportedOperationException: cannot reflectively invoke MethodHandle
+
+
+
+//use reflection to get method - then unreflect to get handle
+Method reflectedCall = instance.class.getMethod("getValue" )
+MethodHandle handle  = lookup.unreflect(reflectedCall)
+
+//get handle by lookup
+MethodHandle virtRef = lookup.findVirtual(ExampleClass.class, "getValue", MethodType.methodType (String.class))
+
+assert handle.toString() == virtRef.toString()
+
+MethodType mt = handle.type()
+
+//getter can be treated as Function where the compiler injects this reference as hiddden arg
+MethodType factoryMethodType = MethodType.methodType(Function.class, ExampleClass)
+
+java.lang.invoke.CallSite callSite = LambdaMetafactory.metafactory(
          lookup,
         //invoked name, name of method on Supplier interface
-        "get",
-        MethodType.methodType(Supplier.class, ExampleClass),  //, ExampleClass.class
+        "getValue",
+        //invokedType: expected signature of the callsite, The parameter types represent the types of capture variables, here invoked arg is Closure and returns Supplier
+        //                   -- ret type --   -- invoked type -- on bindTo
+        factoryMethodType,
+        //MethodType.methodType(Supplier.class, []),
         // samMthodType: signature and return type of method to be implemented  by the function object, type erasure, Supplier will return an Object
         MethodType.methodType (Object.class),
         //implMethod handle that does the work - the handle for closure call()
-        getter,
-        getter.type()
+        virtRef, //handle,  //lookup.findVirtual(ExampleClass.class, "getValue", MethodType.methodType (String.class)),
+        //instantiatedMethodType: signature and return type that should be forced dynamically at invocation.
+        //This may be the same as samMethodType, or may be a specialization of it.
+        //supplier method real signature  accepts no params and returns string
+        MethodType.methodType(String.class)
 )
 
-MethodHandle factory = methodCallSite.getTarget()
-Supplier lambda =  factory.bindTo(instance).invokeWithArguments()
+MethodHandle factory = callSite.getTarget()
 
-//now invoke it
-def ret = lambda.get (instance)
+def lambda =  factory.bindTo(instance).invokeWithArguments().asType (String)
+def ret = lambda ()
 println ret
