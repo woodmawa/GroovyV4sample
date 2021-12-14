@@ -26,27 +26,6 @@ ExampleClass instance = new ExampleClass()
 MethodHandles.Lookup lookup= MethodHandles.lookup()
 
 
-// 2. Creates a MethodType
-//MethodType sourceMethodType = MethodType.methodType(String.class, []);
-//                                            ^-----------^        ^----------^
-//                                             return type         argument class
-
-// 3. Find the MethodHandle
-//MethodHandle metaHandle = lookup.findVirtual(ExampleClass.class, "getValue", sourceMethodType);
-//                                       ^----------^               ^-------------^
-//                                            |                     name of method
-//                             class from which method is accessed
-
-// 4. Invoke the method
-//String strVal
-//strVal = (String) metaHandle.bindTo(instance).invokeWithArguments()  // this works
-//                                  ^----^                  ^----^
-//                                    |                    argument
-//                       instance your class  to invoke the method on
-
-// strVal = (String) metaHandle.invokeExact(instance);  //throws java.lang.UnsupportedOperationException: cannot reflectively invoke MethodHandle
-
-
 
 //use reflection to get method - then unreflect to get handle
 Method reflectedCall = instance.class.getMethod("getValue" )
