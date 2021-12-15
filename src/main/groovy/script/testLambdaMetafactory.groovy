@@ -10,6 +10,9 @@ import java.lang.reflect.Method
 import java.util.function.Function
 import java.util.function.Supplier
 
+/**
+ * LambdaMetafactory example with closure - works
+ */
 Closure myClosure = {"hello from closure"}
 
 MethodHandles.Lookup lookup= MethodHandles.lookup()
@@ -30,7 +33,7 @@ java.lang.invoke.CallSite closureCallSite = LambdaMetafactory.metafactory(
         //instantiatedMethodType: signature and return type that should be forced dynamically at invocation.
         //This may be the same as samMethodType, or may be a specialization of it.
         //supplier method real signature  accepts no params and returns string
-        MethodType.methodType(Supplier)
+        MethodType.methodType(String)
 )
 
 MethodHandle closureFactory = closureCallSite.getTarget()
@@ -40,7 +43,9 @@ def res = closureLambda.get()
 println res
 
 
-
+/**
+ * LambdaMetafactory example with stad class  - cant get to work with any combinations
+ */
 class ExampleClass {
     private String value = "hello from getter"
 
@@ -63,11 +68,11 @@ java.lang.invoke.CallSite getterCallSite = LambdaMetafactory.metafactory(
        // samMthodType: signature and return type of method to be implemented  by the function object, type erasure, Supplier will return an Object
         MethodType.methodType (Object.class),
         //implMethod handle that does the work - the handle for closure call()
-        getterDelegateImpl, //handle,  //lookup.findVirtual(ExampleClass.class, "getValue", MethodType.methodType (String.class)),
+        getterDelegateImpl,
         //instantiatedMethodType: signature and return type that should be forced dynamically at invocation.
         //This may be the same as samMethodType, or may be a specialization of it.
         //supplier method real signature  accepts no params and returns string
-        MethodType.methodType(Supplier.class)
+        MethodType.methodType(String.class)
 )
 
 MethodHandle classFactory = getterCallSite.getTarget()
