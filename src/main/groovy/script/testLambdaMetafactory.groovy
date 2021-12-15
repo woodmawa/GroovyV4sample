@@ -1,13 +1,10 @@
 package script
 
-import org.codehaus.groovy.runtime.MetaClassHelper
 
 import java.lang.invoke.LambdaMetafactory
 import java.lang.invoke.MethodHandle
 import java.lang.invoke.MethodHandles
 import java.lang.invoke.MethodType
-import java.lang.reflect.Method
-import java.util.function.Function
 import java.util.function.Supplier
 
 /**
