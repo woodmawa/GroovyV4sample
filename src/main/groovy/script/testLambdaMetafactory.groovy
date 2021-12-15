@@ -5,6 +5,7 @@ import java.lang.invoke.LambdaMetafactory
 import java.lang.invoke.MethodHandle
 import java.lang.invoke.MethodHandles
 import java.lang.invoke.MethodType
+import java.util.function.Function
 import java.util.function.Supplier
 
 /**
@@ -55,11 +56,32 @@ ExampleClass instance = new ExampleClass()
 
 MethodHandle getterDelegateImpl = lookup.findVirtual(ExampleClass.class, "getValue", MethodType.methodType (String.class))
 
+/*java.lang.invoke.CallSite getterFunctionCallSite = LambdaMetafactory.metafactory(
+        lookup,
+        "apply",
+        //invokedType: expected signature of the callsite, The parameter types represent the types of capture variables, here invoked arg is Closure and returns Supplier
+        MethodType.methodType(Function.class),
+        // samMthodType: signature and return type of method to be implemented  by the function object, type erasure, Supplier will return an Object
+        getterDelegateImpl.type().erase(),  //MethodType.methodType (Object.class, ExampleClass),
+        //implMethod handle that does the work - the handle for closure call()
+        getterDelegateImpl,
+        //This may be the same as samMethodType, or may be a specialization of it.
+        //supplier method real signature  accepts no params and returns string
+        getterDelegateImpl.type()//methodType.methodType(String.class)
+)
+
+MethodHandle classFunctionFactory = getterFunctionCallSite.getTarget()
+
+Function funcLambda =  (Function) classFunctionFactory.invokeWithArguments()
+def fret = funcLambda.apply (instance)
+println fret*/
+
 java.lang.invoke.CallSite getterCallSite = LambdaMetafactory.metafactory(
          lookup,
         "get",
         //invokedType: expected signature of the callsite, The parameter types represent the types of capture variables, here invoked arg is Closure and returns Supplier
-        MethodType.methodType(Supplier.class, ExampleClass),
+        MethodType.methodType(Supplier.class, ExampleClass.class),
+        //MethodType.methodType(Supplier.class, ExampleClass),
        // samMthodType: signature and return type of method to be implemented  by the function object, type erasure, Supplier will return an Object
         MethodType.methodType (Object.class),
         //implMethod handle that does the work - the handle for closure call()
@@ -71,6 +93,6 @@ java.lang.invoke.CallSite getterCallSite = LambdaMetafactory.metafactory(
 
 MethodHandle classFactory = getterCallSite.getTarget()
 
-Supplier lambda =  classFactory.bindTo(instance).invokeWithArguments()
-def ret = lambda.get ()
-println ret
+Supplier suppLambda =  classFactory.bindTo(instance).invokeWithArguments()
+def sret = suppLambda.get ()
+println sret
