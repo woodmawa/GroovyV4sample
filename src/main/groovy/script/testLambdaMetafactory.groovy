@@ -31,7 +31,6 @@ java.lang.invoke.CallSite closureCallSite = LambdaMetafactory.metafactory(
         //implMethod handle that does the work - the handle for closure call()
         delegateImpl,
         //instantiatedMethodType: signature and return type that should be forced dynamically at invocation.
-        //This may be the same as samMethodType, or may be a specialization of it.
         //supplier method real signature  accepts no params and returns string
         MethodType.methodType(String)
 )
