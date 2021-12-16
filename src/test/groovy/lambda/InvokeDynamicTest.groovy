@@ -52,7 +52,7 @@ class InvokeDynamicTest {
      * get value by generating a Supplier interface reference
      */
     @Test
-    void accessViaNonStaticBeanSupplierGetter () {
+    void accessViaNonStaticBeanGetterAsSupplier () {
 
         Method reflected = ExampleBeanClass.class.getDeclaredMethod("getValue")
         implementationDelegate = callerCtx.unreflect (reflected)
@@ -78,7 +78,7 @@ class InvokeDynamicTest {
      * get value by generating a functional interface reference
      */
     @Test
-    void accessViaNonStaticBeanFunctionTypeGetter () {
+    void accessViaNonStaticBeanGetterAsFunctionWithBoundInstance () {
 
         Method reflected = ExampleBeanClass.class.getDeclaredMethod("getValue")
         implementationDelegate = callerCtx.unreflect (reflected)
@@ -107,7 +107,7 @@ class InvokeDynamicTest {
      * so you need to simulate that by passing the 'this' instance to the delegate
      */
     @Test
-    void accessViaNonStaticBeanFunctionTypeGetterV2 () {
+    void accessViaNonStaticBeanGetterAsFunctionPassingBeanAsParam () {
 
         Method reflected = ExampleBeanClass.class.getDeclaredMethod("getValue")
         implementationDelegate = callerCtx.unreflect (reflected)
