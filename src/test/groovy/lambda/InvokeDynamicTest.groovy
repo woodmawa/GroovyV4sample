@@ -84,6 +84,12 @@ class InvokeDynamicTest {
         assert func.apply() == "hello from getter"
     }
 
+    /**
+     * alternative implementation where you call accept with bean
+     * in this case the instantiatedMethodType has to show the return and the param to be passed
+     * This relies on the fact that first parameter in the delegateImpl is the hidden this param at args[0]
+     * so you need to simulate that by passing the 'this' instance to the delegate
+     */
     @Test
     void accessViaNonStaticBeanFunctionTypeGetterV2 () {
 
