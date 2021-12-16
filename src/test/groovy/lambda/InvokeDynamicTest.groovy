@@ -13,6 +13,22 @@ import java.lang.reflect.Method
 import java.util.function.Function
 import java.util.function.Supplier
 
+
+/**
+ * LambdaMetaclass description :
+ "When the target of the CallSite returned from this method is invoked, the resulting function objects are instances of a class which implements the interface named by the return type of invokedType, declares a method with the name given by invokedName and the signature given by samMethodType. It may also override additional methods from Object.
+
+ Parameters:
+ caller - Represents a lookup context with the accessibility privileges of the caller. Specifically, the lookup context must have private access privileges. When used with invokedynamic, this is stacked automatically by the VM.
+ invokedName - The name of the method to implement. When used with invokedynamic, this is provided by the NameAndType of the InvokeDynamic structure and is stacked automatically by the VM.
+ invokedType - The expected signature of the CallSite. The parameter types represent the types of capture variables; the return type is the interface to implement. When used with invokedynamic, this is provided by the NameAndType of the InvokeDynamic structure and is stacked automatically by the VM. In the event that the implementation method is an instance method and this signature has any parameters, the first parameter in the invocation signature must correspond to the receiver.
+ samMethodType - Signature and return type of method to be implemented by the function object.
+ implMethod - A direct method handle describing the implementation method which should be called (with suitable adaptation of argument types, return types, and with captured arguments prepended to the invocation arguments) at invocation time.
+ instantiatedMethodType - The signature and return type that should be enforced dynamically at invocation time. This may be the same as samMethodType, or may be a specialization of it.
+ Returns:
+ a CallSite whose target can be used to perform capture, generating instances of the interface named by invokedType"
+ *
+ */
 class InvokeDynamicTest {
 
     ExampleBeanClass bean
