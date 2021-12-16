@@ -95,6 +95,71 @@ class ClassUtils {
     }
 
     /**
+     * generates a functional interface from a callSite
+     *
+     * @param returnClass
+     * @param instance
+     * @param sourceMethodName
+     * @param args
+     * @return
+     */
+    static def getLambdaFromStaticReflectionMethod(Class<?> returnClass, Class<?> clazz, String sourceMethodName, Object... args) {
+        Method reflectedCall
+        String methodName
+
+        switch (returnClass) {
+            case Supplier -> methodName = "get"
+            case Function -> methodName = "accept"
+            case BiFunction -> methodName = "apply"
+            case Consumer -> methodName = "accept"
+            case Predicate -> methodName = "test"
+            case Callable -> methodName = "call"
+            case Runnable -> methodName = "run"
+
+            default -> methodName = "accept"
+        }
+
+        Class runtimeClazz = clazz
+        Class closClazz = Closure.class
+
+        reflectedCall = runtimeClazz.getMethod(methodName, MetaClassHelper.castArgumentsToClassArray (args) )
+
+        MethodHandle delegateImplHandle  = lookup.unreflect(reflectedCall)
+
+        /**
+         * weird with closure instantiatedMethodType, and samMethodType seem to need form ()<returnType>
+         * if using instance of ordinary class you can get form (<source>)<returnType>
+         */
+        MethodType instantiatedMethodType = MethodType.methodType (Object)
+        MethodType samMethodType =  delegateImplHandle.type().erase()
+        ArrayList argsTypeList = MetaClassHelper.castArgumentsToClassArray (args)
+
+        MethodType invokedMethodType
+        if (argsTypeList.size() == 0) {
+            invokedMethodType = MethodType.methodType(returnClass)
+        } else {
+            invokedMethodType = MethodType.methodType(returnClass, *argsTypeList)
+        }
+
+        /**
+         * wont work at mo for static functions to be generated
+         */
+        //now get a callSite for the handle - https://wttech.blog/blog/2020/method-handles-and-lambda-metafactory/
+        java.lang.invoke.CallSite callSite = LambdaMetafactory.metafactory(
+                lookup,                     //calling Ctx for methods
+                methodName,                 //name of the functional interface name to invoke
+                invokedMethodType,          // MethodType.methodType(Supplier, Closure ),
+                samMethodType,              //MethodType.methodType(Object),              // samMthodType: signature and return type of method to be implemented after type erasure
+                delegateImplHandle,         //implMethod handle that does the work - the handle for closure call()
+                instantiatedMethodType      //instantiatedMethodType: signature and return type that should be forced dynamically at invocation.
+        )
+
+        MethodHandle factory = callSite.getTarget()
+
+        return ( factory.invokeWithArguments() ).asType(returnClass)
+    }
+
+    /**
      *
      * @param obj
      * @param name
