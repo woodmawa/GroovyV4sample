@@ -5,8 +5,9 @@ import java.lang.invoke.LambdaMetafactory
 import java.lang.invoke.MethodHandle
 import java.lang.invoke.MethodHandles
 import java.lang.invoke.MethodType
-import java.util.function.Function
 import java.util.function.Supplier
+
+//moved ExampleBeanClass to its on class file
 
 /**
  * LambdaMetafactory example with closure - works
@@ -43,18 +44,11 @@ println res
 /**
  * LambdaMetafactory example with standard class  - cant get to work with any combinations
  */
-class ExampleClass {
-    private String value = "hello from getter"
 
-    ExampleClass() {}  //constructor
 
-    String getValue () {return value}
-    void setValue (String val) {value = val}
-}
+ExampleBeanClass instance = new ExampleBeanClass()  //now from its own class file
 
-ExampleClass instance = new ExampleClass()
-
-MethodHandle getterDelegateImpl = lookup.findVirtual(ExampleClass.class, "getValue", MethodType.methodType (String.class))
+MethodHandle getterDelegateImpl = lookup.findVirtual(ExampleBeanClass.class, "getValue", MethodType.methodType (String.class))
 
 /*java.lang.invoke.CallSite getterFunctionCallSite = LambdaMetafactory.metafactory(
         lookup,
@@ -80,7 +74,7 @@ java.lang.invoke.CallSite getterCallSite = LambdaMetafactory.metafactory(
          lookup,
         "get",
         //invokedType: expected signature of the callsite, The parameter types represent the types of capture variables, here invoked arg is Closure and returns Supplier
-        MethodType.methodType(Supplier.class, ExampleClass.class),
+        MethodType.methodType(Supplier.class, ExampleBeanClass.class),
         //MethodType.methodType(Supplier.class, ExampleClass),
        // samMthodType: signature and return type of method to be implemented  by the function object, type erasure, Supplier will return an Object
         MethodType.methodType (Object.class),
