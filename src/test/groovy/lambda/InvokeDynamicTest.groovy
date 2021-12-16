@@ -85,6 +85,36 @@ class InvokeDynamicTest {
     }
 
     @Test
+    void accessViaNonStaticBeanFunctionTypeGetterV2 () {
+
+        Method reflected = ExampleBeanClass.class.getDeclaredMethod("getValue")
+        implementationDelegate = callerCtx.unreflect (reflected)
+
+        MethodType erasedType = implementationDelegate.type().erase()
+        MethodType instantiatedType = implementationDelegate.type()
+        MethodType instantiatedType2 = MethodType.methodType (String)
+        MethodType instantiatedType3 = MethodType.methodType (String, ExampleBeanClass)
+        assert instantiatedType == instantiatedType3
+
+        //if you want bind an instance value to your lambda, you have to include those types in the InvokedType signature, and then do the bind
+        CallSite site = LambdaMetafactory.metafactory(
+                callerCtx,
+                "apply",                                       //functional interface method name
+                MethodType.methodType (Function.class),                         //invoked type
+                erasedType,                                                         // SAM method type signature of required interface
+                implementationDelegate,                                         //code thats doing the real work
+                //instantiatedType //(this works)                               //expected return type of instantiated method, expected as subtype of SAM type
+                MethodType.methodType (String, ExampleBeanClass)                //have to use this form as we are going call function with bean param
+        )
+
+        MethodHandle factory = site.getTarget()                //invokedType defined bean class, so now bind one here
+
+        Function func = (Function) factory.invokeWithArguments()
+
+        assert func.apply(bean) == "hello from getter"
+    }
+
+    @Test
     void accessViaStaticBeanGetter () {
 
         Method reflected = ExampleBeanClass.class.getDeclaredMethod("getStaticValue")
