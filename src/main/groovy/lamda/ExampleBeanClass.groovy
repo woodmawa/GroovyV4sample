@@ -1,4 +1,4 @@
-package script
+package lamda
 
 class ExampleBeanClass {
     private String value = "hello from getter"

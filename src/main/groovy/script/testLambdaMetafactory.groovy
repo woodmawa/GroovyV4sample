@@ -1,5 +1,6 @@
 package script
 
+import lamda.ExampleBeanClass
 
 import java.lang.invoke.LambdaMetafactory
 import java.lang.invoke.MethodHandle
