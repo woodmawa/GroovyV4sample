@@ -51,25 +51,6 @@ ExampleBeanClass instance = new ExampleBeanClass()  //now from its own class fil
 
 MethodHandle getterDelegateImpl = lookup.findVirtual(ExampleBeanClass.class, "getValue", MethodType.methodType (String.class))
 
-/*java.lang.invoke.CallSite getterFunctionCallSite = LambdaMetafactory.metafactory(
-        lookup,
-        "apply",
-        //invokedType: expected signature of the callsite, The parameter types represent the types of capture variables, here invoked arg is Closure and returns Supplier
-        MethodType.methodType(Function.class),
-        // samMthodType: signature and return type of method to be implemented  by the function object, type erasure, Supplier will return an Object
-        getterDelegateImpl.type().erase(),  //MethodType.methodType (Object.class, ExampleClass),
-        //implMethod handle that does the work - the handle for closure call()
-        getterDelegateImpl,
-        //This may be the same as samMethodType, or may be a specialization of it.
-        //supplier method real signature  accepts no params and returns string
-        getterDelegateImpl.type()//methodType.methodType(String.class)
-)
-
-MethodHandle classFunctionFactory = getterFunctionCallSite.getTarget()
-
-Function funcLambda =  (Function) classFunctionFactory.invokeWithArguments()
-def fret = funcLambda.apply (instance)
-println fret*/
 
 java.lang.invoke.CallSite getterCallSite = LambdaMetafactory.metafactory(
          lookup,

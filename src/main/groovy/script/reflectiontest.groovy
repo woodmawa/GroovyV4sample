@@ -8,6 +8,7 @@ import org.codehaus.groovy.runtime.MetaClassHelper
 import org.codehaus.groovy.runtime.metaclass.NewInstanceMetaMethod
 import org.codehaus.groovy.runtime.metaclass.NewMetaMethod
 import org.codehaus.groovy.runtime.metaclass.NewStaticMetaMethod
+import utils.ClassUtils
 
 import java.lang.invoke.LambdaMetafactory
 import java.lang.invoke.MethodHandle
@@ -114,60 +115,10 @@ println ins.propertyInfo
 //try this
 Closure myClos = {"dynamic method returned String result"}
 
-//get reflection Method for closures "call" method name
- Method reflectedCall = Closure.class.getMethod ("call")
-
-
-def getLambdaFromReflectionMethod(Class<?> returnClass, Object instance, String name, Object[] args) {
-    Method reflectedCall
-    MethodHandles.Lookup lookup= MethodHandles.lookup()
-
-    String methodName
-    switch (returnClass) {
-        case Supplier -> methodName = "get"
-        case Function -> methodName = "accept"
-        default -> methodName = "accept"
-    }
-
-    Class runtimeClazz = instance.getClass()
-    Class closClazz = Closure.class
-    if (instance instanceof Closure ){
-        reflectedCall = Closure.class.getMethod ("call")
-    } else {
-        reflectedCall = instance.class.getMethod(methodName, MetaClassHelper.castArgumentsToClassArray (args) )
-    }
-    MethodHandle handle  = lookup.unreflect(reflectedCall)
-
-    Class clazz = instance instanceof Closure ? Closure.class : instance.getClass()
-
-    //now get a callSite for the handle - https://wttech.blog/blog/2020/method-handles-and-lambda-metafactory/
-    java.lang.invoke.CallSite callSite = LambdaMetafactory.metafactory(
-            //method handle lookup to use
-            lookup,
-            //invoked name, name of method on Supplier interface
-            methodName,
-            //invokedType: expected signature of the callsite, The parameter types represent the types of capture variables, here invoked arg is Closure and returns Supplier
-            //                   -- ret type --   -- invoked type -- on bindTo
-            MethodType.methodType(returnClass, clazz),
-            // samMthodType: signature and return type of method to be implemented  by the function object, type erasure, Supplier will return an Object
-            MethodType.methodType (Object.class),
-            //implMethod handle that does the work - the handle for closure call()
-            handle,
-            //instantiatedMethodType: signature and return type that should be forced dynamically at invocation.
-            //This may be the same as samMethodType, or may be a specialization of it.
-            //supplier method real signature  accepts no params and returns string
-            MethodType.methodType(returnClass)
-    )
-
-    MethodHandle factory = callSite.getTarget()
-
-    return ( factory.bindTo(instance).invokeWithArguments() ).asType(returnClass)
-}
-
 //object to invoke reflected call on
 //                                                       returnType        obj instance      methodName
 //Function lambda = getLambdaFromReflectionMethod (Function, myClos, 'call' )
-Supplier<String> lambda = getLambdaFromReflectionMethod (Supplier<String>, myClos, 'call' )
-String val = lambda ()  //invoke get() on Supplier
+Supplier<String> lambda = ClassUtils.getLambdaFromReflectionMethod(Supplier<String>, myClos, 'call' )
+String val = lambda.get ()  //invoke get() on Supplier
 println val
 
