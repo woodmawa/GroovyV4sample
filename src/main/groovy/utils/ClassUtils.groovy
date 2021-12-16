@@ -52,7 +52,8 @@ class ClassUtils {
         if (instance instanceof Closure ){
             reflectedCall = Closure.class.getMethod ("call")
         } else {
-            reflectedCall = instance.class.getMethod(methodName, MetaClassHelper.castArgumentsToClassArray (args) )
+            reflectedCall = (args?.size() > 0) ? instance.class.getMethod(sourceMethodName, MetaClassHelper.castArgumentsToClassArray (args) )
+                                                : instance.class.getMethod(sourceMethodName)
         }
         MethodHandle delegateImplHandle  = lookup.unreflect(reflectedCall)
 
