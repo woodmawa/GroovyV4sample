@@ -2,13 +2,20 @@ package LambdaMetaclassTests
 
 import extensible.WillsTestSubExpando
 import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
+import script.ExampleBeanClass
 
 class LambdaBeanClassAccessTests {
 
-    Example
+    ExampleBeanClass bean
     @BeforeEach
     void init() {
-        wtse = new WillsTestSubExpando()
+        bean = new ExampleBeanClass()
     }
 
+    @Test
+    void accessViaGetter () {
+
+
+    }
 }
