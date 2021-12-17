@@ -209,8 +209,8 @@ class WillsExpando {
             }
             //todo: hard - need to do right curry on some thing to bind the prop name to the method
 
-            MethodClosure getterClos = this::get
-            MethodClosure setterClos = this::put
+            MethodClosure getterClos = this::get.rcurry(name)
+            MethodClosure setterClos = this::put.rcurry(name)
 
             getterMethod = getClass().getMethod( 'get', Object)
             setterMethod = getClass().getMethod ('put', Object, Object)
