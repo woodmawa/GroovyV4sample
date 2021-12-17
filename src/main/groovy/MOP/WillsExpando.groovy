@@ -98,7 +98,7 @@ class WillsExpando {
         staticExpandoMethods.remove(name)
     }
 
-    static def getStaticMethod (String name){
+    static Closure getStaticMethod (String name){
         staticExpandoMethods[name]
     }
 
@@ -209,7 +209,7 @@ class WillsExpando {
         expandoMethods.remove(name)
     }
 
-    def getMethod (String name){
+    Closure getMethod (String name){
         List<MetaMethod> lmm = this.metaClass.getMethods()
         MetaMethod mm
        if (mm = lmm.findResult{it.name == name ?it:null}) {
@@ -219,7 +219,7 @@ class WillsExpando {
         }
     }
 
-    def getMethods() {
+    Map<String, Closure> getMethods() {
         List<MetaProperty> mms = this.metaClass.metaMethods
 
         // have to stop recursion on properties, and skip dynamic concurrent maps from showing
