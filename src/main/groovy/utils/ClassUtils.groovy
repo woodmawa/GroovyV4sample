@@ -37,14 +37,14 @@ class ClassUtils {
 
         switch (returnClass) {
             case Supplier -> methodName = "get"
-            case Function -> methodName = "accept"
+            case Function -> methodName = "apply"
             case BiFunction -> methodName = "apply"
             case Consumer -> methodName = "accept"
             case Predicate -> methodName = "test"
             case Callable -> methodName = "call"
             case Runnable -> methodName = "run"
 
-            default -> methodName = "accept"
+            default -> methodName = "apply"
         }
 
         Class runtimeClazz = instance.getClass()
@@ -52,7 +52,6 @@ class ClassUtils {
         if (instance instanceof Closure ){
             reflectedCall = Closure.class.getMethod ("call")
         } else {
-            List methods = instance.class.getDeclaredMethods()
             def size = sourceMethodArgTypes.size()
             if (sourceMethodArgTypes?.size() > 0 ) {
                 reflectedCall    = instance.class.getMethod(sourceMethodName, *sourceMethodArgTypes )
@@ -106,20 +105,19 @@ class ClassUtils {
 
         switch (functionalInterfaceClass) {
             case Supplier -> methodName = "get"
-            case Function -> methodName = "accept"
+            case Function -> methodName = "apply"
             case BiFunction -> methodName = "apply"
             case Consumer -> methodName = "accept"
             case Predicate -> methodName = "test"
             case Callable -> methodName = "call"
             case Runnable -> methodName = "run"
 
-            default -> methodName = "accept"
+            default -> methodName = "apply"
         }
 
         Class runtimeClazz = sourceClazz
         Class closClazz = Closure.class
 
-        List methods = runtimeClazz.getDeclaredMethods()
         if (sourceMethodArgTypes?.size() > 0 )
             reflectedCall = runtimeClazz.getMethod(sourceMethodName, *sourceMethodArgTypes )
         else

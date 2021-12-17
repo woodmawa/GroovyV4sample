@@ -33,6 +33,11 @@ class ClassUtilsTest {
 
     }
 
+    /**
+     * slightly unnatural but you can get a functional interface for a getter,
+     * when you invoke just invoke with empty args list -
+     * bit using Supplier interface feels better fit 
+     */
     @Test
     void generateFunctionFromBeanClassInstance () {
 
@@ -93,6 +98,37 @@ class ClassUtilsTest {
 
         Supplier supplier = factory.bindTo(bean).invokeWithArguments()
         supplier.get() == "hello from getter"
+    }
+
+    @Test
+    void generateFunctionFromBeanClassInstance2 () {
+
+        ExampleBeanClass bean = new ExampleBeanClass()
+
+        MethodHandles.Lookup lookup = MethodHandles.lookup()
+        MethodHandle delegateImplHandle = lookup.findVirtual(ExampleBeanClass,'getValue',MethodType.methodType(String))
+
+        MethodType invokedMethodType = MethodType.methodType(Function, ExampleBeanClass)
+        MethodType sam = MethodType.methodType (Object.class)
+        MethodType samMethodTypeNoDrop = delegateImplHandle.type().erase()
+        MethodType samMethodType = delegateImplHandle.type().dropParameterTypes(0,1).erase()
+        MethodType ins = MethodType.methodType (String.class)
+        MethodType instantiatedMethodType = delegateImplHandle.type().dropParameterTypes(0,1)
+
+
+        java.lang.invoke.CallSite callSite = LambdaMetafactory.metafactory(
+                lookup,                     //calling Ctx for methods
+                'apply',                 //name of the functional interface name to invoke
+                invokedMethodType,          // MethodType.methodType(Supplier, Closure ),
+                samMethodType,              //MethodType.methodType(Object),              // samMthodType: signature and return type of method to be implemented after type erasure
+                delegateImplHandle,         //implMethod handle that does the work - the handle for closure call()
+                instantiatedMethodType      //instantiatedMethodType: signature and return type that should be forced dynamically at invocation.
+        )
+
+        MethodHandle factory = callSite.getTarget()
+
+        Function function = factory.bindTo(bean).invokeWithArguments()
+        function.apply() == "hello from getter"
     }
 
     @Test
