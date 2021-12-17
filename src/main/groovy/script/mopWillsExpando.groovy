@@ -37,14 +37,21 @@ println "static prop readf was $val "
 
 Map staticPropMap = willsExpando.getStaticProperties()
 
-extendedWillsExpando.addProperty("dynamic prop", "flex value")
+extendedWillsExpando.addProperty("dynamicProp", "dynamic property")
 def stdProp = extendedWillsExpando.getProperty("stdProp")
 Map propMap = willsExpando.getProperties()
 
-/*MetaBeanProperty mbp = willsExpando.getProperty("dynamic prop")
-def dynVal = mbp.getter.invoke(mbp, [] as ArrayList)
-mbp.setter.invoke (mbp, "changed flex Value")
-dynVal = mbp.getter.invoke(mbp, [] as ArrayList)*/
+MetaBeanProperty mbp = extendedWillsExpando.getMetaProperty("stdProp")
+def statVal = mbp.getter.invoke(extendedWillsExpando)
+mbp.setter.invoke ( extendedWillsExpando, "changed std prop Value")
+assert extendedWillsExpando.stdProp == "changed std prop Value"
+assert mbp.getProperty(extendedWillsExpando) == "changed std prop Value"
+
+mbp = extendedWillsExpando.getMetaProperty("dynamicProp")
+statVal = mbp.getter.invoke(extendedWillsExpando)
+mbp.setter.invoke ( extendedWillsExpando, "changed dynamic property")
+assert extendedWillsExpando.stdProp == "changed dynamic property"
+assert mbp.getProperty(extendedWillsExpando) == "changed dynamic property"
 
 println "l2props : " + willsExpando.static.properties
 

@@ -2,8 +2,11 @@ package MOP
 
 import com.sun.tools.jdi.JDWP
 import groovy.transform.EqualsAndHashCode
+import org.codehaus.groovy.reflection.CachedMethod
 import org.codehaus.groovy.runtime.MethodClosure
+import org.codehaus.groovy.runtime.metaclass.ReflectionMetaMethod
 
+import java.lang.reflect.Method
 import java.lang.reflect.Modifier
 import java.util.concurrent.Callable
 import java.util.concurrent.ConcurrentHashMap
@@ -150,6 +153,22 @@ class WillsExpando {
         expandoProperties.remove(name)
     }
 
+    /*
+     * next two methods are delegating proxies for ConcurrentMap when generating MetaProperties for WillsExpando
+     * defer to standard props first then look at the private expandoProperties ConcurrentMap
+     * so we need to intercept these so that getter and setter refer to WillsExpando class
+     */
+    def get (Object key) {
+        getProperty (key.asType(String))
+    }
+
+    def put (Object key, Object value) {
+        setProperty (key.asType(String), value)
+    }
+
+    /*
+     * intercept all calls for properties and look at metaClass first, then private expandoProperties next
+     */
     def getProperty (String name){
         if (name == "static") {
             return getStatic()
@@ -171,6 +190,37 @@ class WillsExpando {
             }
         }
         prop
+    }
+
+    def getMetaProperty (String name){
+        //check metaclass first
+        def prop
+        Method getterMethod, setterMethod
+        if (metaClass.hasProperty(this, name)) {
+            prop =  metaClass.getMetaProperty(name).getProperty(this)
+            String camelCaseName = name[0].toUpperCase() +  name.substring(1)
+            getterMethod = getClass().getMethod("get${camelCaseName}")
+            setterMethod = getClass().getMethod("set${camelCaseName}",Object)
+        } else {
+            //ok go ahead and look in dynamic store next
+            prop = expandoProperties.containsKey(name)
+            if (!prop) {
+                throw new MissingPropertyException(name, WillsExpando)
+            }
+            //todo: hard - need to do right curry on some thing to bind the prop name to the method
+
+            MethodClosure getterClos = this::get
+            MethodClosure setterClos = this::put
+
+            getterMethod = getClass().getMethod( 'get', Object)
+            setterMethod = getClass().getMethod ('put', Object, Object)
+        }
+
+        MetaMethod getter = new ReflectionMetaMethod (new CachedMethod(getterMethod))
+        MetaMethod setter = new ReflectionMetaMethod (new CachedMethod(setterMethod))
+
+        MetaBeanProperty mbp = new MetaBeanProperty (name, this.getClass(), getter, setter)
+        mbp
     }
 
     boolean hasProperty (String name) {
