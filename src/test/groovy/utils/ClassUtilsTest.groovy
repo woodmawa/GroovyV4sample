@@ -7,6 +7,7 @@ import java.lang.invoke.LambdaMetafactory
 import java.lang.invoke.MethodHandle
 import java.lang.invoke.MethodHandles
 import java.lang.invoke.MethodType
+import java.util.function.Function
 import java.util.function.Predicate
 import java.util.function.Supplier
 
@@ -33,6 +34,16 @@ class ClassUtilsTest {
     }
 
     @Test
+    void generateFunctionFromBeanClassInstance () {
+
+        ExampleBeanClass bean = new ExampleBeanClass()
+
+        Function function = ClassUtils.getLambdaFromReflectionMethod(Function, bean, 'getValue')
+        function.apply() == "hello from getter"
+
+    }
+
+    @Test
     void generateSupplierFromBeanClassStaticMethod  () {
 
         ExampleBeanClass bean = new ExampleBeanClass()
@@ -41,6 +52,7 @@ class ClassUtilsTest {
         supplier.get() == "static string value"
 
     }
+
 
     @Test
     void generatePredicateFromBeanClassInstance () {
