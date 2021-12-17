@@ -63,8 +63,10 @@ class ClassUtils {
          * weird with closure instantiatedMethodType, and samMethodType seem to need form ()<returnType>
          * if using instance of ordinary class you can get form (<source>)<returnType>
          */
-        MethodType instantiatedMethodType = (instance instanceof Closure ) ? MethodType.methodType (Object): delegateImplHandle.type()
-        MethodType samMethodType = (instance instanceof Closure ) ? MethodType.methodType (Object): delegateImplHandle.type().erase()
+        MethodType instantiatedMethodType = (instance instanceof Closure ) ? MethodType.methodType (Object)
+                                                                            : MethodType.methodType (delegateImplHandle.type().returnType())
+        MethodType samMethodType = (instance instanceof Closure ) ? MethodType.methodType (Object)
+                                                                    : MethodType.methodType (delegateImplHandle.type().erase().returnType())
         ArrayList argsTypeList = MetaClassHelper.castArgumentsToClassArray (args)
 
         MethodType invokedMethodType
@@ -77,9 +79,6 @@ class ClassUtils {
         MethodType samType = MethodType.methodType(Object )
         MethodType insType = MethodType.methodType(String )
 
-        /**
-         * wont work at mo for static functions to be generated
-         */
         //now get a callSite for the handle - https://wttech.blog/blog/2020/method-handles-and-lambda-metafactory/
         java.lang.invoke.CallSite callSite = LambdaMetafactory.metafactory(
                 lookup,                     //calling Ctx for methods
@@ -131,8 +130,10 @@ class ClassUtils {
          * weird with closure instantiatedMethodType, and samMethodType seem to need form ()<returnType>
          * if using instance of ordinary class you can get form (<source>)<returnType>
          */
-        MethodType instantiatedMethodType = MethodType.methodType (Object)
-        MethodType samMethodType =  delegateImplHandle.type().erase()
+
+       
+        MethodType instantiatedMethodType = MethodType.methodType (delegateImplHandle.type().returnType())
+        MethodType samMethodType =  MethodType.methodType (delegateImplHandle.type().erase().returnType())
         ArrayList argsTypeList = MetaClassHelper.castArgumentsToClassArray (args)
 
         MethodType invokedMethodType
