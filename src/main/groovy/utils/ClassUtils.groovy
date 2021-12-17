@@ -25,51 +25,39 @@ class ClassUtils {
     /**
      * generates a functional interface from a callSite
      *
-     * @param returnClass
+     * @param functionalInterfaceReturnClass
      * @param instance
      * @param sourceMethodName
      * @param sourceMethodArgTypes
      * @return
      */
-    static def getLambdaFromReflectionMethod(Class<?> returnClass, Object instance, String sourceMethodName, Class<?>... sourceMethodArgTypes) {
+    static def getLambdaFromReflectionMethod(Class<?> functionalInterfaceReturnClass, Object instance, String sourceMethodName, Class<?>... sourceMethodArgTypes) {
         Method reflectedCall
-        String methodName
+        String funcionalInterfaceMethodName
 
-        switch (returnClass) {
-            case Supplier -> methodName = "get"
-            case Function -> methodName = "apply"
-            case BiFunction -> methodName = "apply"
-            case Consumer -> methodName = "accept"
-            case Predicate -> methodName = "test"
-            case Callable -> methodName = "call"
-            case Runnable -> methodName = "run"
+        switch (functionalInterfaceReturnClass) {
+            case Supplier -> funcionalInterfaceMethodName = "get"
+            case Function -> funcionalInterfaceMethodName = "apply"
+            case BiFunction -> funcionalInterfaceMethodName = "apply"
+            case Consumer -> funcionalInterfaceMethodName = "accept"
+            case Predicate -> funcionalInterfaceMethodName = "test"
+            case Callable -> funcionalInterfaceMethodName = "call"
+            case Runnable -> funcionalInterfaceMethodName = "run"
 
-            default -> methodName = "apply"
+            default -> funcionalInterfaceMethodName = "apply"
         }
 
         Class runtimeClazz = instance.getClass()
-        Class closClazz = Closure.class
-        if (instance instanceof Closure ){
-            reflectedCall = Closure.class.getMethod ("call")
+        def size = sourceMethodArgTypes.size()
+        if (sourceMethodArgTypes?.size() > 0 ) {
+            reflectedCall    = instance.class.getMethod(sourceMethodName, *sourceMethodArgTypes )
         } else {
-            def size = sourceMethodArgTypes.size()
-            if (sourceMethodArgTypes?.size() > 0 ) {
-                reflectedCall    = instance.class.getMethod(sourceMethodName, *sourceMethodArgTypes )
-            } else {
-                reflectedCall    = instance.class.getMethod(sourceMethodName)
-            }
-            //reflectedCall = (args?.size() > 0) ? instance.class.getMethod(sourceMethodName, *MetaClassHelper.castArgumentsToClassArray (args) )
-              //                                  : instance.class.getMethod(sourceMethodName)
+            reflectedCall    = instance.class.getMethod(sourceMethodName)
         }
+
         MethodHandle delegateImplHandle  = lookup.unreflect(reflectedCall)
 
-        Class clazz = instance instanceof Closure ? Closure.class : instance.getClass()
-
-        /**
-         * weird with closure instantiatedMethodType, and samMethodType seem to need form ()<returnType>
-         * if using instance of ordinary class you can get form (<source>)<returnType>
-         */
-        MethodType invokedMethodType = MethodType.methodType(returnClass, clazz)
+        MethodType invokedMethodType = MethodType.methodType(functionalInterfaceReturnClass, runtimeClazz)
         MethodType samMethodType = (instance instanceof Closure ) ? MethodType.methodType (Object)
                                                                     : delegateImplHandle.type().dropParameterTypes(0,1).erase()
         MethodType instantiatedMethodType = (instance instanceof Closure ) ? MethodType.methodType (Object)
@@ -78,7 +66,7 @@ class ClassUtils {
         //now get a callSite for the handle - https://wttech.blog/blog/2020/method-handles-and-lambda-metafactory/
         java.lang.invoke.CallSite callSite = LambdaMetafactory.metafactory(
                 lookup,                     //calling Ctx for methods
-                methodName,                 //name of the functional interface name to invoke
+                funcionalInterfaceMethodName,                 //name of the functional interface name to invoke
                 invokedMethodType,          // MethodType.methodType(Supplier, Closure ),
                 samMethodType,              //MethodType.methodType(Object),              // samMthodType: signature and return type of method to be implemented after type erasure
                 delegateImplHandle,         //implMethod handle that does the work - the handle for closure call()
@@ -101,18 +89,18 @@ class ClassUtils {
      */
     static def getLambdaFromStaticReflectionMethod(Class<?> functionalInterfaceClass, Class<?> sourceClazz, String sourceMethodName, Class<?>... sourceMethodArgTypes) {
         Method reflectedCall
-        String methodName
+        String functionalInterfaceMethodName
 
         switch (functionalInterfaceClass) {
-            case Supplier -> methodName = "get"
-            case Function -> methodName = "apply"
-            case BiFunction -> methodName = "apply"
-            case Consumer -> methodName = "accept"
-            case Predicate -> methodName = "test"
-            case Callable -> methodName = "call"
-            case Runnable -> methodName = "run"
+            case Supplier -> functionalInterfaceMethodName = "get"
+            case Function -> functionalInterfaceMethodName = "apply"
+            case BiFunction -> functionalInterfaceMethodName = "apply"
+            case Consumer -> functionalInterfaceMethodName = "accept"
+            case Predicate -> functionalInterfaceMethodName = "test"
+            case Callable -> functionalInterfaceMethodName = "call"
+            case Runnable -> functionalInterfaceMethodName = "run"
 
-            default -> methodName = "apply"
+            default -> functionalInterfaceMethodName = "apply"
         }
 
         Class runtimeClazz = sourceClazz
@@ -139,7 +127,7 @@ class ClassUtils {
         //now get a callSite for the handle - https://wttech.blog/blog/2020/method-handles-and-lambda-metafactory/
         java.lang.invoke.CallSite callSite = LambdaMetafactory.metafactory(
                 lookup,                     //calling Ctx for methods
-                methodName,                 //name of the functional interface name to invoke
+                functionalInterfaceMethodName,                 //name of the functional interface name to invoke
                 invokedMethodType,          // MethodType.methodType(Supplier, Closure ),
                 samMethodType,              //MethodType.methodType(Object),              // samMthodType: signature and return type of method to be implemented after type erasure
                 delegateImplHandle,         //implMethod handle that does the work - the handle for closure call()

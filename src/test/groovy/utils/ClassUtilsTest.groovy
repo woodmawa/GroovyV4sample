@@ -36,7 +36,7 @@ class ClassUtilsTest {
     /**
      * slightly unnatural but you can get a functional interface for a getter,
      * when you invoke just invoke with empty args list -
-     * bit using Supplier interface feels better fit 
+     * bit using Supplier interface feels better fit
      */
     @Test
     void generateFunctionFromBeanClassInstance () {
@@ -70,7 +70,7 @@ class ClassUtilsTest {
     }
 
     @Test
-    void generateSupplierFromBeanClassInstance2 () {
+    void generateSupplierFromBeanClassInstanceViaCallSiteDirect () {
 
         ExampleBeanClass bean = new ExampleBeanClass()
 
@@ -101,7 +101,7 @@ class ClassUtilsTest {
     }
 
     @Test
-    void generateFunctionFromBeanClassInstance2 () {
+    void generateFunctionFromBeanClassInstanceViaCallSiteDirect () {
 
         ExampleBeanClass bean = new ExampleBeanClass()
 
@@ -132,7 +132,7 @@ class ClassUtilsTest {
     }
 
     @Test
-    void generatePredicateFromBeanClassInstance2 () {
+    void generatePredicateFromBeanClassInstanceViaCallSiteDirect () {
 
         ExampleBeanClass bean = new ExampleBeanClass()
 
