@@ -28,10 +28,10 @@ class ClassUtils {
      * @param returnClass
      * @param instance
      * @param sourceMethodName
-     * @param args
+     * @param sourceMethodArgTypes
      * @return
      */
-    static def getLambdaFromReflectionMethod(Class<?> returnClass, Object instance, String sourceMethodName, Object... args) {
+    static def getLambdaFromReflectionMethod(Class<?> returnClass, Object instance, String sourceMethodName, Class<?>... sourceMethodArgTypes) {
         Method reflectedCall
         String methodName
 
@@ -52,8 +52,15 @@ class ClassUtils {
         if (instance instanceof Closure ){
             reflectedCall = Closure.class.getMethod ("call")
         } else {
-            reflectedCall = (args?.size() > 0) ? instance.class.getMethod(sourceMethodName, MetaClassHelper.castArgumentsToClassArray (args) )
-                                                : instance.class.getMethod(sourceMethodName)
+            List methods = instance.class.getDeclaredMethods()
+            def size = sourceMethodArgTypes.size()
+            if (sourceMethodArgTypes?.size() > 0 ) {
+                reflectedCall    = instance.class.getMethod(sourceMethodName, *sourceMethodArgTypes )
+            } else {
+                reflectedCall    = instance.class.getMethod(sourceMethodName)
+            }
+            //reflectedCall = (args?.size() > 0) ? instance.class.getMethod(sourceMethodName, *MetaClassHelper.castArgumentsToClassArray (args) )
+              //                                  : instance.class.getMethod(sourceMethodName)
         }
         MethodHandle delegateImplHandle  = lookup.unreflect(reflectedCall)
 
@@ -63,21 +70,11 @@ class ClassUtils {
          * weird with closure instantiatedMethodType, and samMethodType seem to need form ()<returnType>
          * if using instance of ordinary class you can get form (<source>)<returnType>
          */
-        MethodType instantiatedMethodType = (instance instanceof Closure ) ? MethodType.methodType (Object)
-                                                                            : MethodType.methodType (delegateImplHandle.type().returnType())
+        MethodType invokedMethodType = MethodType.methodType(returnClass, clazz)
         MethodType samMethodType = (instance instanceof Closure ) ? MethodType.methodType (Object)
-                                                                    : MethodType.methodType (delegateImplHandle.type().erase().returnType())
-        ArrayList argsTypeList = MetaClassHelper.castArgumentsToClassArray (args)
-
-        MethodType invokedMethodType
-        if (argsTypeList.size() == 0) {
-            invokedMethodType = MethodType.methodType(returnClass, clazz)
-        } else {
-            invokedMethodType = MethodType.methodType(returnClass, clazz, *argsTypeList)
-        }
-
-        MethodType samType = MethodType.methodType(Object )
-        MethodType insType = MethodType.methodType(String )
+                                                                    : delegateImplHandle.type().dropParameterTypes(0,1).erase()
+        MethodType instantiatedMethodType = (instance instanceof Closure ) ? MethodType.methodType (Object)
+                                                                            : delegateImplHandle.type().dropParameterTypes(0,1)
 
         //now get a callSite for the handle - https://wttech.blog/blog/2020/method-handles-and-lambda-metafactory/
         java.lang.invoke.CallSite callSite = LambdaMetafactory.metafactory(
@@ -91,7 +88,7 @@ class ClassUtils {
 
         MethodHandle factory = callSite.getTarget()
 
-        return ( factory.bindTo(instance).invokeWithArguments() ).asType(returnClass)
+        return factory.bindTo(instance).invokeWithArguments()
     }
 
     /**
@@ -103,11 +100,11 @@ class ClassUtils {
      * @param args
      * @return
      */
-    static def getLambdaFromStaticReflectionMethod(Class<?> returnClass, Class<?> clazz, String sourceMethodName, Object... args) {
+    static def getLambdaFromStaticReflectionMethod(Class<?> functionalInterfaceClass, Class<?> sourceClazz, String sourceMethodName, Class<?>... sourceMethodArgTypes) {
         Method reflectedCall
         String methodName
 
-        switch (returnClass) {
+        switch (functionalInterfaceClass) {
             case Supplier -> methodName = "get"
             case Function -> methodName = "accept"
             case BiFunction -> methodName = "apply"
@@ -119,10 +116,14 @@ class ClassUtils {
             default -> methodName = "accept"
         }
 
-        Class runtimeClazz = clazz
+        Class runtimeClazz = sourceClazz
         Class closClazz = Closure.class
 
-        reflectedCall = runtimeClazz.getMethod(methodName, MetaClassHelper.castArgumentsToClassArray (args) )
+        List methods = runtimeClazz.getDeclaredMethods()
+        if (sourceMethodArgTypes?.size() > 0 )
+            reflectedCall = runtimeClazz.getMethod(sourceMethodName, *sourceMethodArgTypes )
+        else
+            reflectedCall = runtimeClazz.getMethod(sourceMethodName )
 
         MethodHandle delegateImplHandle  = lookup.unreflect(reflectedCall)
 
@@ -130,18 +131,9 @@ class ClassUtils {
          * weird with closure instantiatedMethodType, and samMethodType seem to need form ()<returnType>
          * if using instance of ordinary class you can get form (<source>)<returnType>
          */
-
-       
-        MethodType instantiatedMethodType = MethodType.methodType (delegateImplHandle.type().returnType())
-        MethodType samMethodType =  MethodType.methodType (delegateImplHandle.type().erase().returnType())
-        ArrayList argsTypeList = MetaClassHelper.castArgumentsToClassArray (args)
-
-        MethodType invokedMethodType
-        if (argsTypeList.size() == 0) {
-            invokedMethodType = MethodType.methodType(returnClass)
-        } else {
-            invokedMethodType = MethodType.methodType(returnClass, *argsTypeList)
-        }
+        MethodType invokedMethodType = MethodType.methodType(functionalInterfaceClass)
+        MethodType samMethodType =  delegateImplHandle.type().erase()
+        MethodType instantiatedMethodType = delegateImplHandle.type()
 
         /**
          * wont work at mo for static functions to be generated
@@ -158,7 +150,7 @@ class ClassUtils {
 
         MethodHandle factory = callSite.getTarget()
 
-        return ( factory.invokeWithArguments() ).asType(returnClass)
+        return ( factory.invokeWithArguments() ).asType(functionalInterfaceClass)
     }
 
     /**
