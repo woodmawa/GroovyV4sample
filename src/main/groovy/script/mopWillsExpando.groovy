@@ -48,7 +48,8 @@ assert extendedWillsExpando.stdProp == "changed std prop Value"
 assert mbp.getProperty(extendedWillsExpando) == "changed std prop Value"
 
 mbp = extendedWillsExpando.getMetaProperty("dynamicProp")
-statVal = mbp.getter.invoke(extendedWillsExpando)
+MetaMethod getter = mbp.getter
+statVal = getter.invoke(extendedWillsExpando)  //sadly getter is from closure - and extendedWillsExpando isnt - fails
 mbp.setter.invoke ( extendedWillsExpando, "changed dynamic property")
 assert extendedWillsExpando.stdProp == "changed dynamic property"
 assert mbp.getProperty(extendedWillsExpando) == "changed dynamic property"

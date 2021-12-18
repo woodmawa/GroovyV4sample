@@ -215,6 +215,8 @@ class WillsExpando {
             getterMethod = getterClos.getClass().getMethod( 'call')
             setterMethod = setterClos.getClass().getMethod ('call', Object)
 
+            def val = getterClos ()
+            val
             /*getterMethod = getClass().getMethod( 'getAt', Object)
             setterMethod = getClass().getMethod ('putAt', Object, Object)*/
         }
