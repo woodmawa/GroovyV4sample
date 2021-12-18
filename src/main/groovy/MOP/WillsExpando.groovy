@@ -158,11 +158,11 @@ class WillsExpando {
      * defer to standard props first then look at the private expandoProperties ConcurrentMap
      * so we need to intercept these so that getter and setter refer to WillsExpando class
      */
-    def get (Object key) {
+    def getAt (Object key) {
         getProperty (key.asType(String))
     }
 
-    def put (Object key, Object value) {
+    def putAt (Object key, Object value) {
         setProperty (key.asType(String), value)
     }
 
@@ -209,11 +209,14 @@ class WillsExpando {
             }
             //todo: hard - need to do right curry on some thing to bind the prop name to the method
 
-            MethodClosure getterClos = this::get.rcurry(name)
-            MethodClosure setterClos = this::put.rcurry(name)
+            Closure getterClos = this::getAt.rcurry(name)
+            Closure setterClos = this::putAt.ncurry(1, name)
 
-            getterMethod = getClass().getMethod( 'get', Object)
-            setterMethod = getClass().getMethod ('put', Object, Object)
+            getterMethod = getterClos.getClass().getMethod( 'call')
+            setterMethod = setterClos.getClass().getMethod ('call', Object)
+
+            /*getterMethod = getClass().getMethod( 'getAt', Object)
+            setterMethod = getClass().getMethod ('putAt', Object, Object)*/
         }
 
         MetaMethod getter = new ReflectionMetaMethod (new CachedMethod(getterMethod))
