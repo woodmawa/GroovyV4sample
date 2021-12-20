@@ -189,7 +189,7 @@ class WillsExpando {
 
     /*
      * next two methods are delegating proxies for ConcurrentMap when generating MetaProperties for WillsExpando
-     * defer to standard props first then look at the private expandoProperties ConcurrentMap
+     * defer to standard props first then look at the private expandoProperties ConcurrentMap, then the staticExpandoProperties
      * so we need to intercept these so that getter and setter refer to WillsExpando class
      */
     def getAt (String key) {
@@ -209,6 +209,7 @@ class WillsExpando {
     /*
      * intercept all calls for properties and look at metaClass first, then private expandoProperties next
      */
+    @Override
     def getProperty (String name){
         if (name == "static") {
             return getStatic()
@@ -233,6 +234,7 @@ class WillsExpando {
         prop
     }
 
+    @Override
     def getMetaProperty (String name){
         //check metaclass first
         def prop
@@ -276,6 +278,12 @@ class WillsExpando {
         mbp
     }
 
+    /**
+     * checks if it has the property, or it exists in the expandoProperties
+     *
+     * excludes:  doesnt look at static properties defined in staticExpandoProperties
+     */
+    @Override
     boolean hasProperty (String name) {
         if (metaClass.hasProperty(this, name )){
             return true
@@ -284,6 +292,7 @@ class WillsExpando {
         }
     }
 
+    @Override
     Map getProperties () {
         List<MetaProperty> mps = metaClass.properties
 
@@ -303,6 +312,7 @@ class WillsExpando {
         m1
     }
 
+    @Override
     List<MetaProperty> getMetaProperties () {
         List<MetaProperty> mps = metaClass.properties
 
@@ -424,6 +434,7 @@ class WillsExpando {
         expandoMethods.remove(name)
     }
 
+    @Override
     Closure getMethod (String name){
         List<MetaMethod> lmm = this.metaClass.getMethods()
         MetaMethod mm
@@ -434,6 +445,7 @@ class WillsExpando {
         }
     }
 
+    @Override
     Map<String, Closure> getMethods() {
         List<MetaMethod> mms = this.metaClass.metaMethods
 
@@ -461,6 +473,7 @@ class WillsExpando {
      * @param signature, varargs list of classes that the method is expected to take
      * @return
      */
+    @Override
     def getMetaMethod (String name, Class<?>... signature){
         //check metaclass first
         def expandoMethodClosure
@@ -526,6 +539,7 @@ class WillsExpando {
         return metaMethod
     }
 
+    @Override
     def invokeMethod (name, args) {
         def mm
         if ( mm = metaClass.getMetaMethod(name, args)) {
@@ -544,6 +558,7 @@ class WillsExpando {
         }
     }
 
+    @Override
     def propertyMissing (String name) {
         //todo
         //look in class flex attributes first, then in metaClass if anything matches
@@ -560,6 +575,7 @@ class WillsExpando {
         prop
     }
 
+    @Override
     def propertyMissing (String name, value) {
         if (value instanceof Closure || value instanceof Callable || value instanceof Function)
             addMethod (name, value)
@@ -567,7 +583,8 @@ class WillsExpando {
             addProperty(name, value)
     }
 
-   def methodMissing (String name, args) {
+    @Override
+    def methodMissing (String name, args) {
         //invoked if you've done a call on the expando and it can't find one by normal path so try expandoMethods map
         Closure method = expandoMethods[name]
         if (!method) {
