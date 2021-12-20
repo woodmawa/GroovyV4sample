@@ -181,4 +181,110 @@ class WillsExpandoTest {
         //tidy up for other tests
         WillsExpando.removeStaticProperty("statProp")
     }
+
+    @Test
+    void invokeMetaMethodTest () {
+        MetaMethod mm = wtse.getMetaMethod('getAt', String)
+
+        assert mm
+        assert mm.getName() == 'getAt'
+        assert mm.isStatic() == false
+        assert mm.returnType == Object
+        assert mm.signature == "getAt(Ljava/lang/String;)Ljava/lang/Object;"
+
+        wtse.dynamicMethod = {'hello from dynamicMethod'}
+        mm = wtse.getMetaMethod('dynamicMethod')
+        assert mm.getName() == 'dynamicMethod'
+        assert mm.isStatic() == false
+        assert mm.returnType == Object
+        assert mm.invoke(wtse) == 'hello from dynamicMethod'
+
+    }
+
+    @Test
+    void invokeStaticMetaMethodTest () {
+        wtse.addStaticMethod ('staticDynamicMethod', {'hello from staticDynamicMethod'})
+        MetaMethod smm = wtse.getStaticMetaMethod('staticDynamicMethod')
+        assert smm.getName() == 'staticDynamicMethod'
+        assert smm.isStatic() == true
+        assert smm.returnType == Object
+        assert smm.invoke(wtse) == 'hello from staticDynamicMethod'
+
+        wtse.removeStaticMethod ('staticDynamicMethod')
+    }
+
+    @Test
+    void examineStaticMetaMethods () {
+
+        wtse.addStaticMethod ('staticDynamicMethod', {'hello from staticDynamicMethod'})
+
+        List<MetaMethod> mms = wtse.getStaticMetaMethods()
+
+
+        List mnames = mms.collect{it.name}
+
+        MetaMethod dmm = mms.find{it.name == 'staticDynamicMethod'}
+
+        assert mms
+        assert dmm.isStatic()
+        dmm.invoke(wtse) == 'staticDynamicMethod'
+
+        wtse.removeStaticMethod ('staticDynamicMethod')
+
+    }
+
+    @Test
+    void examineMetaMethods () {
+
+        wtse.addMethod ('dynamicMethod', {'hello from dynamicMethod'})
+
+        List<MetaMethod> mms = wtse.getMetaMethods()
+
+
+        List mnames = mms.collect{it.name}
+
+        MetaMethod dmm = mms.find{it.name == 'dynamicMethod'}
+
+        assert mms
+        assert dmm.isStatic() == false
+        dmm.invoke(wtse) == 'dynamicMethod'
+
+        wtse.removeMethod('dynamicMethod')
+    }
+
+    @Test
+    void examineMetaProperties () {
+
+        wtse.addProperty ('dynamicProperty', 'dynamic property value')
+
+        List<MetaMethod> mps = wtse.getMetaProperties()
+
+
+        List mnames = mps.collect{it.name}
+
+        MetaProperty dmp = mps.find{it.name == 'dynamicProperty'}
+
+        assert mps
+        dmp.getProperty(wtse) == 'dynamic property value'
+
+        wtse.removeProperty('dynamicProperty')
+    }
+
+    @Test
+    void examineStaticMetaProperties () {
+
+        wtse.addStaticProperty ('staticDynamicProperty', 'static dynamic property value')
+
+        List<MetaMethod> smps = wtse.getStaticMetaProperties()
+
+
+        List mnames = smps.collect{it.name}
+
+        MetaProperty dmp = smps.find{it.name == 'staticDynamicProperty'}
+
+        assert smps
+        dmp.getProperty(wtse) == 'static dynamic property value'
+
+        wtse.removeStaticProperty('staticDynamicProperty')
+    }
 }

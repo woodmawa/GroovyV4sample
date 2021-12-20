@@ -11,6 +11,7 @@ import java.util.stream.Collectors
 WillsExpando willsExpando = new WillsExpando()
 
 class ExtendedWillsExpando extends WillsExpando {
+    static def stdStaticProp = "std static prop"
     def testMethod () {
         "testMethod"
     }
@@ -51,38 +52,6 @@ mbp.setter.invoke ( extendedWillsExpando, "changed std prop Value")
 assert extendedWillsExpando.stdProp == "changed std prop Value"
 assert mbp.getProperty(extendedWillsExpando) == "changed std prop Value"
 
-/** -------
-Closure getterClos = extendedWillsExpando::getAt
-Closure setterClos = extendedWillsExpando::putAt
-def ans = getterClos('dynamicProp')
-
-Closure curriedGetterClos = getterClos.curry('dynamicProp')
-Closure curriedSetterClos = setterClos.curry( 'dynamicProp')
-ans = curriedGetterClos()
-curriedSetterClos('new dynamic value')
-assert curriedGetterClos() == 'new dynamic value'
-
-Method getterMethod = curriedGetterClos.getClass().getMethod( 'call')
-Method setterMethod = curriedSetterClos.getClass().getMethod ('call', Object)
-
-def decClazz = getterMethod.declaringClass
-
-CachedMethod cacheGet = new CachedMethod(getterMethod )
-CachedMethod cacheSet = new CachedMethod(setterMethod )
-
-def res = cacheGet.getSignature()
-res = cacheGet.invoke(curriedGetterClos)
-
-MetaMethod getterMeth = new ClosureMetaMethod ('getAt', ExtendedWillsExpando, curriedGetterClos, cacheGet )
-MetaMethod setterMeth = new ClosureMetaMethod ('setAt', ExtendedWillsExpando, curriedSetterClos, cacheSet )
-
-res = getterMeth.invoke(extendedWillsExpando)
-
-mbp = new MetaBeanProperty('dynamicProp', ExtendedWillsExpando, getterMeth, setterMeth)
-res = mbp.getProperty()
-
-
-/** ------- */
 
 mbp = extendedWillsExpando.getMetaProperty("dynamicProp")
 MetaMethod getter = mbp.getter
@@ -90,6 +59,9 @@ def dynVal = getter.invoke(extendedWillsExpando)  //sadly getter is from closure
 mbp.setter.invoke ( extendedWillsExpando, "changed dynamic property")
 assert extendedWillsExpando.dynamicProp == "changed dynamic property"
 assert mbp.getProperty(extendedWillsExpando) == "changed dynamic property"
+
+List mpropVasl = extendedWillsExpando.getMetaPropertyValues()
+
 
 println "l2props : " + willsExpando.static.properties
 

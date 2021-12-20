@@ -5,6 +5,7 @@ import groovy.transform.EqualsAndHashCode
 import org.codehaus.groovy.reflection.CachedMethod
 import org.codehaus.groovy.runtime.MethodClosure
 import org.codehaus.groovy.runtime.metaclass.ClosureMetaMethod
+import org.codehaus.groovy.runtime.metaclass.ClosureStaticMetaMethod
 import org.codehaus.groovy.runtime.metaclass.ReflectionMetaMethod
 
 import java.lang.reflect.Method
@@ -34,6 +35,13 @@ class WillsExpando {
      }
 
     static def addStaticProperty (String name , def value) {
+        if (value instanceof Closure || value instanceof Callable || value instanceof Function )
+            addStaticMethod (name, value )
+        else
+            staticExpandoProperties.putIfAbsent(name, value)
+    }
+
+    static def setStaticProperty (String name , def value) {
         if (value instanceof Closure || value instanceof Callable || value instanceof Function )
             addStaticMethod (name, value )
         else
@@ -106,9 +114,19 @@ class WillsExpando {
         staticExpandoMethods[name]
     }
 
-    static boolean hasStaticExpandoProperty (String name) {
-        staticExpandoProperties[name] ? true : false
-    }
+    boolean hasStaticExpandoProperty (String name) {
+        def propertyExists
+        MetaProperty
+        if (propertyExists = metaClass.hasProperty(this, name )){
+            MetaProperty mp = metaClass.getMetaProperty(name)
+            if (Modifier.isStatic(mp.modifiers))
+                return true
+            else
+                return false
+        } else {
+            staticExpandoProperties[name] ? true : false
+        }
+     }
 
     //if used on static class we dont know the context so we have to pass as a param to get the MetaMethods
     static Map  getStaticMethods (ofThing) {
@@ -132,12 +150,27 @@ class WillsExpando {
         Map m1 =[:]
         for (mm in mms){
             def name = mm.name
-            def value = new MethodClosure (WillsExpando,name)
+            def value = new MethodClosure (this.getClass(), name)
             m1 << [(name): value]
         }
         m1.putAll(staticExpandoMethods)
         m1
     }
+
+    //non static form as we know the call instance context here
+    List<MetaMethod>  getStaticMetaMethods () {
+
+        List<MetaMethod> mms = this.metaClass.getMetaMethods().findAll{Modifier.isStatic (it.modifiers)}.collect()
+
+        List closureMetaMethodList =[]
+        for (clos in staticExpandoMethods) {
+            closureMetaMethodList << new ClosureStaticMetaMethod(clos.key, this.getClass(), clos.value )
+        }
+
+        mms.addAll(closureMetaMethodList)
+        mms
+    }
+
 
     def addProperty (String name , def value) {
         if (value instanceof Closure || value instanceof Callable || value instanceof Function )
@@ -160,11 +193,17 @@ class WillsExpando {
      * so we need to intercept these so that getter and setter refer to WillsExpando class
      */
     def getAt (String key) {
-        getProperty (key.asType(String))
+        if (hasProperty(key))
+            getProperty (key.asType(String))
+        else (hasStaticExpandoProperty(key))  //better check dynamic static properties list as well
+            getStaticProperty(key)
     }
 
-    def putAt (String key, Object value) {
-        setProperty (key.asType(String), value)
+    void putAt (String key, Object value) {
+        if (hasProperty(key))
+            setProperty (key.asType(String), value)
+        else (hasStaticExpandoProperty(key))
+            setStaticProperty (key.asType(String), value )
     }
 
     /*
@@ -186,6 +225,7 @@ class WillsExpando {
 
             //ok go ahead and look in dynamic store next
             prop = expandoProperties[name]
+
             if (!prop) {
                 throw new MissingPropertyException(name, WillsExpando)
             }
@@ -263,6 +303,118 @@ class WillsExpando {
         m1
     }
 
+    List<MetaProperty> getMetaProperties () {
+        List<MetaProperty> mps = metaClass.properties
+
+        // have to stop recursion on properties, and skip dynamic concurrent maps from showing
+        List expandoMetaProperties  = []
+        CachedMethod cacheGet, cacheSet
+        MetaMethod metaGetter, metaSetter
+
+        for (expandoProp in expandoProperties) {
+            String name = expandoProp.key
+
+            /**
+             * to make this work - get two closures, from real methods that take take the dynamic propertyName as key,  and will
+             * access the expando's propertyMap.
+             * Then curry the dynamicProperty  name on that closure so it takes the same number of params as an ordinary property would
+             * create CachedMethods for the ::call() action
+             */
+            Closure getterClos = this::getAt.curry(name)
+            Closure setterClos = this::putAt.curry( name)
+
+            cacheGet = new CachedMethod (getterClos.getClass().getMethod( 'call'))
+            cacheSet = new CachedMethod (setterClos.getClass().getMethod ('call', Object))
+
+            metaGetter = new ClosureMetaMethod ('getAt', this.getClass(), getterClos, cacheGet)
+            metaSetter = new ClosureMetaMethod ('getAt', this.getClass(), setterClos, cacheSet)
+            MetaBeanProperty mbp = new MetaBeanProperty (name, this.getClass(), metaGetter, metaSetter)
+            expandoMetaProperties << mbp
+        }
+
+        mps.addAll (expandoMetaProperties)
+        mps
+    }
+
+    List<MetaProperty> getStaticMetaProperties () {
+        List<MetaProperty> smps = metaClass.properties.findResults{Modifier.isStatic (it.modifiers) ? it :null}
+
+        // have to stop recursion on properties, and skip dynamic concurrent maps from showing
+        List expandoMetaProperties  = []
+        CachedMethod cacheGet, cacheSet
+        MetaMethod metaGetter, metaSetter
+
+        for (expandoProp in staticExpandoProperties) {
+            String name = expandoProp.key
+
+            /**
+             * to make this work - get two closures, from real methods that take take the dynamic propertyName as key,  and will
+             * access the expando's propertyMap.
+             * Then curry the dynamicProperty  name on that closure so it takes the same number of params as an ordinary property would
+             * create CachedMethods for the ::call() action
+             */
+            Closure getterClos = this::getAt.curry(name)
+            Closure setterClos = this::putAt.curry( name)
+
+            cacheGet = new CachedMethod (getterClos.getClass().getMethod( 'call'))
+            cacheSet = new CachedMethod (setterClos.getClass().getMethod ('call', Object))
+
+            metaGetter = new ClosureMetaMethod ('getAt', this.getClass(), getterClos, cacheGet)
+            metaSetter = new ClosureMetaMethod ('getAt', this.getClass(), setterClos, cacheSet)
+            MetaBeanProperty mbp = new MetaBeanProperty (name, this.getClass(), metaGetter, metaSetter)
+            expandoMetaProperties << mbp
+        }
+
+        smps.addAll (expandoMetaProperties)
+        smps
+    }
+
+    def getStaticMetaProperty (String name){
+        //check metaclass first
+        def prop
+        Method getterMethod, setterMethod
+        CachedMethod cacheGet, cacheSet
+        MetaMethod metaGetter, metaSetter
+
+        MetaProperty mp = metaClass.getProperties().collect {Modifier.isStatic(it.modifiers)? it : null}.find{it.name == name}
+        if (mp) {
+            String camelCaseName = name[0].toUpperCase() +  name.substring(1)
+            getterMethod = getClass().getMethod("get${camelCaseName}")
+            setterMethod = getClass().getMethod("set${camelCaseName}",Object)
+
+            cacheGet = new CachedMethod (getterMethod)
+            cacheSet = new CachedMethod (setterMethod)
+
+            metaGetter = new ReflectionMetaMethod(cacheGet)
+            metaSetter = new ReflectionMetaMethod(cacheSet)
+        } else {
+            //ok go ahead and look in dynamic store next
+            prop = staticExpandoProperties.containsKey(name)
+            if (!prop) {
+                throw new MissingPropertyException(name, WillsExpando)
+            }
+
+            /**
+             * to make this work - get two closures, from real methods that take take the dynamic propertyName as key,  and will
+             * access the expando's propertyMap.
+             * Then curry the dynamicProperty  name on that closure so it takes the same number of params as an ordinary property would
+             * create CachedMethods for the ::call() action
+             */
+            Closure getterClos = this::getAt.curry(name)
+            Closure setterClos = this::putAt.curry( name)
+
+            cacheGet = new CachedMethod (getterClos.getClass().getMethod( 'call'))
+            cacheSet = new CachedMethod (setterClos.getClass().getMethod ('call', Object))
+
+            metaGetter = new ClosureMetaMethod ('getAt', this.getClass(), getterClos, cacheGet)
+            metaSetter = new ClosureMetaMethod ('getAt', this.getClass(), setterClos, cacheSet)
+        }
+
+        MetaBeanProperty mbp = new MetaBeanProperty (name, this.getClass(), metaGetter, metaSetter)
+        mbp
+    }
+
+
     def addMethod (String name , def value) {
         if (value instanceof Closure || value instanceof Callable || value instanceof Function)
             expandoMethods.put (name, value)
@@ -283,7 +435,7 @@ class WillsExpando {
     }
 
     Map<String, Closure> getMethods() {
-        List<MetaProperty> mms = this.metaClass.metaMethods
+        List<MetaMethod> mms = this.metaClass.metaMethods
 
         // have to stop recursion on properties, and skip dynamic concurrent maps from showing
         Map m1 = [:]
@@ -300,6 +452,78 @@ class WillsExpando {
         m1.putAll(expandoProperties)
         m1
 
+    }
+
+    /**
+     * checks for real method if available and returns that, else looks in expandoMethods and creates metaMethod from closure
+     * stored with 'name' as its key
+     * @param name
+     * @param signature, varargs list of classes that the method is expected to take
+     * @return
+     */
+    def getMetaMethod (String name, Class<?>... signature){
+        //check metaclass first
+        def expandoMethodClosure
+        CachedMethod cacheMethod
+
+        MetaMethod metaMethod = metaClass.getMetaMethod(name, signature)
+        if (!metaMethod) {
+
+            //ok go ahead and look in dynamic store next
+            def exists = expandoMethods.containsKey(name)
+            if (!exists) {
+                throw new MissingMethodException(name, this.getClass())
+            }
+            expandoMethodClosure = expandoMethods[(name)]
+
+            /**
+             * to make this work - get two closures, from real methods that take take the dynamic propertyName as key,  and will
+             * access the expando's propertyMap.
+             * Then curry the dynamicProperty  name on that closure so it takes the same number of params as an ordinary property would
+             * create CachedMethods for the ::call() action
+             */
+            cacheMethod = new CachedMethod (expandoMethodClosure.getClass().getMethod( 'call'))
+
+            metaMethod = new ClosureMetaMethod (name, this.getClass(), expandoMethodClosure, cacheMethod)
+        }
+
+        return metaMethod
+    }
+
+    /**
+     * checks for real static method if available and returns that, else looks in expandoStaticMethods and creates metaMethod from closure
+     * stored with 'name' as its key
+     * @param name
+     * @param signature, varargs list of classes that the method is expected to take
+     * @return
+     */
+    def getStaticMetaMethod (String name, Class<?>... signature){
+        //check metaclass first
+        Closure expandoMethodClosure
+        CachedMethod cacheMethod
+
+        MetaMethod metaMethod = metaClass.getStaticMetaMethod(name, signature)
+        if (!metaMethod) {
+
+            //ok go ahead and look in dynamic store next
+            def exists = staticExpandoMethods.containsKey(name)
+            if (!exists) {
+                throw new MissingMethodException(name, this.getClass())
+            }
+            expandoMethodClosure = staticExpandoMethods[(name)]
+
+            /**
+             * to make this work - get two closures, from real methods that take take the dynamic propertyName as key,  and will
+             * access the expando's propertyMap.
+             * Then curry the dynamicProperty  name on that closure so it takes the same number of params as an ordinary property would
+             * create CachedMethods for the ::call() action
+             */
+            cacheMethod = new CachedMethod (expandoMethodClosure.getClass().getMethod( 'call'))
+
+            metaMethod = new ClosureStaticMetaMethod (name, this.getClass(), expandoMethodClosure)
+        }
+
+        return metaMethod
     }
 
     def invokeMethod (name, args) {

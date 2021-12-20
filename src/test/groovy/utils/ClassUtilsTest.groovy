@@ -162,4 +162,6 @@ class ClassUtilsTest {
         predicate.test(10) == true
 
     }
+
+
 }

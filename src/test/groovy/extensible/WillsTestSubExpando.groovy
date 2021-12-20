@@ -1,11 +1,12 @@
 package extensible
 
 import MOP.WillsExpando
+import org.junit.jupiter.api.Test
 
 //subclass of wills expando to test subclasses of WillsExpando
 
 class WillsTestSubExpando extends WillsExpando {
-        String stdProp = "defaultClassProp"
+    String stdProp = "defaultClassProp"
         static String statProp = "defaultClassStaticProp"
 
         def testMethod (String test) {
