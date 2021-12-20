@@ -4,6 +4,7 @@ import com.sun.tools.jdi.JDWP
 import groovy.transform.EqualsAndHashCode
 import org.codehaus.groovy.reflection.CachedMethod
 import org.codehaus.groovy.runtime.MethodClosure
+import org.codehaus.groovy.runtime.metaclass.ClosureMetaMethod
 import org.codehaus.groovy.runtime.metaclass.ReflectionMetaMethod
 
 import java.lang.reflect.Method
@@ -158,11 +159,11 @@ class WillsExpando {
      * defer to standard props first then look at the private expandoProperties ConcurrentMap
      * so we need to intercept these so that getter and setter refer to WillsExpando class
      */
-    def getAt (Object key) {
+    def getAt (String key) {
         getProperty (key.asType(String))
     }
 
-    def putAt (Object key, Object value) {
+    def putAt (String key, Object value) {
         setProperty (key.asType(String), value)
     }
 
@@ -196,35 +197,42 @@ class WillsExpando {
         //check metaclass first
         def prop
         Method getterMethod, setterMethod
+        CachedMethod cacheGet, cacheSet
+        MetaMethod metaGetter, metaSetter
         if (metaClass.hasProperty(this, name)) {
-            prop =  metaClass.getMetaProperty(name).getProperty(this)
             String camelCaseName = name[0].toUpperCase() +  name.substring(1)
             getterMethod = getClass().getMethod("get${camelCaseName}")
             setterMethod = getClass().getMethod("set${camelCaseName}",Object)
+
+            cacheGet = new CachedMethod (getterMethod)
+            cacheSet = new CachedMethod (setterMethod)
+
+            metaGetter = new ReflectionMetaMethod(cacheGet)
+            metaSetter = new ReflectionMetaMethod(cacheSet)
         } else {
             //ok go ahead and look in dynamic store next
             prop = expandoProperties.containsKey(name)
             if (!prop) {
                 throw new MissingPropertyException(name, WillsExpando)
             }
-            //todo: hard - need to do right curry on some thing to bind the prop name to the method
 
-            Closure getterClos = this::getAt.rcurry(name)
-            Closure setterClos = this::putAt.ncurry(1, name)
+            /**
+             * to make this work - get two closures, from real methods that take take the dynamic propertyName as key,  and will
+             * access the expando's propertyMap.
+             * Then curry the dynamicProperty  name on that closure so it takes the same number of params as an ordinary property would
+             * create CachedMethods for the ::call() action
+             */
+            Closure getterClos = this::getAt.curry(name)
+            Closure setterClos = this::putAt.curry( name)
 
-            getterMethod = getterClos.getClass().getMethod( 'call')
-            setterMethod = setterClos.getClass().getMethod ('call', Object)
+            cacheGet = new CachedMethod (getterClos.getClass().getMethod( 'call'))
+            cacheSet = new CachedMethod (setterClos.getClass().getMethod ('call', Object))
 
-            def val = getterClos ()
-            val
-            /*getterMethod = getClass().getMethod( 'getAt', Object)
-            setterMethod = getClass().getMethod ('putAt', Object, Object)*/
+            metaGetter = new ClosureMetaMethod ('getAt', this.getClass(), getterClos, cacheGet)
+            metaSetter = new ClosureMetaMethod ('getAt', this.getClass(), setterClos, cacheSet)
         }
 
-        MetaMethod getter = new ReflectionMetaMethod (new CachedMethod(getterMethod))
-        MetaMethod setter = new ReflectionMetaMethod (new CachedMethod(setterMethod))
-
-        MetaBeanProperty mbp = new MetaBeanProperty (name, this.getClass(), getter, setter)
+        MetaBeanProperty mbp = new MetaBeanProperty (name, this.getClass(), metaGetter, metaSetter)
         mbp
     }
 
