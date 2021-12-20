@@ -7,9 +7,9 @@ import org.junit.jupiter.api.Test
 
 class WillsTestSubExpando extends WillsExpando {
     String stdProp = "defaultClassProp"
-        static String statProp = "defaultClassStaticProp"
+    static String statProp = "defaultClassStaticProp"
 
-        def testMethod (String test) {
-            test + " : hello from test method"
-        }
+    def testMethod (String test) {
+        test + " : hello from test method"
+    }
 }

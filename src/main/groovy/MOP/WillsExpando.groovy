@@ -1,8 +1,12 @@
 package MOP
 
 import com.sun.tools.jdi.JDWP
+import groovy.transform.CompileStatic
 import groovy.transform.EqualsAndHashCode
+import org.codehaus.groovy.reflection.CachedClass
 import org.codehaus.groovy.reflection.CachedMethod
+import org.codehaus.groovy.reflection.ClassInfo
+import org.codehaus.groovy.reflection.ReflectionUtils
 import org.codehaus.groovy.runtime.MethodClosure
 import org.codehaus.groovy.runtime.metaclass.ClosureMetaMethod
 import org.codehaus.groovy.runtime.metaclass.ClosureStaticMetaMethod
@@ -15,6 +19,7 @@ import java.util.concurrent.ConcurrentHashMap
 import java.util.function.Function
 
 @EqualsAndHashCode (includeFields = true)
+@CompileStatic
 class WillsExpando {
 
     static protected Map staticExpandoProperties = new ConcurrentHashMap()
@@ -61,8 +66,13 @@ class WillsExpando {
     //if used on a class itself we don't know the class or instance so we have to pass as a param
     static Map getStaticProperties (def ofThing) {
 
-        List mps = ofThing.metaClass.getProperties().findAll{Modifier.isStatic (it.modifiers)}.collect()
+        List allmps = ofThing.metaClass.getProperties().collect{it.name}
 
+        List mps
+        if (ofThing instanceof Class<?>)
+            mps = ofThing.metaClass.getProperties().findAll{Modifier.isStatic (it.modifiers) ?it:null} //.collect()
+        else
+            mps = ofThing.metaClass.getProperties().findAll{Modifier.isStatic (it.modifiers) ?it:null}
         // have to stop recursion on properties, and skip dynamic concurrent maps from showing
         Map m1 = [:]
         for (mp in mps) {
@@ -70,7 +80,7 @@ class WillsExpando {
             if (name == "properties" || name == "methods" ||name == "staticProperties" || name == "staticMethods")   //skip recursion here
                 continue
             def value = mp.getProperty(this)
-            m1 << [(name): value]
+            m1.put (name, value)
         }
 
         //cant seem to add a static property using MOP - so just get the staticExpandoProperties here
@@ -91,7 +101,7 @@ class WillsExpando {
             if (name == "properties" || name == "methods" ||name == "staticProperties" || name == "staticMethods")   //skip recursion here
                 continue
             def value = mp.getProperty(this)
-            m1 << [(name): value]
+            m1.put (name, value)
         }
 
         //cant seem to add a static property using MOP - so just get the staticExpandoProperties here
@@ -137,7 +147,7 @@ class WillsExpando {
         for (mm in mms){
             def name = mm.name
             def value = new MethodClosure (WillsExpando,name)
-            m1 << [(name): value]
+            m1.put (name, value)
         }
         m1.putAll (staticExpandoMethods)
         m1
@@ -151,7 +161,7 @@ class WillsExpando {
         for (mm in mms){
             def name = mm.name
             def value = new MethodClosure (this.getClass(), name)
-            m1 << [(name): value]
+            m1.put (name,  value)
         }
         m1.putAll(staticExpandoMethods)
         m1
@@ -162,9 +172,9 @@ class WillsExpando {
 
         List<MetaMethod> mms = this.metaClass.getMetaMethods().findAll{Modifier.isStatic (it.modifiers)}.collect()
 
-        List closureMetaMethodList =[]
-        for (clos in staticExpandoMethods) {
-            closureMetaMethodList << new ClosureStaticMetaMethod(clos.key, this.getClass(), clos.value )
+        List<MetaMethod> closureMetaMethodList =[]
+        for (entry in staticExpandoMethods) {
+            closureMetaMethodList.add (new ClosureStaticMetaMethod((String) entry.key, this.getClass(), (Closure) entry.value ) )
         }
 
         mms.addAll(closureMetaMethodList)
@@ -180,7 +190,7 @@ class WillsExpando {
     }
 
     def addProperties (Map props) {
-        props.each {prop, value -> addProperty (prop, value)}
+        props.each {prop, value -> addProperty ((String)prop, value)}
     }
 
     def removeProperty (String name) {
@@ -209,7 +219,6 @@ class WillsExpando {
     /*
      * intercept all calls for properties and look at metaClass first, then private expandoProperties next
      */
-    @Override
     def getProperty (String name){
         if (name == "static") {
             return getStatic()
@@ -234,7 +243,6 @@ class WillsExpando {
         prop
     }
 
-    @Override
     def getMetaProperty (String name){
         //check metaclass first
         def prop
@@ -283,7 +291,6 @@ class WillsExpando {
      *
      * excludes:  doesnt look at static properties defined in staticExpandoProperties
      */
-    @Override
     boolean hasProperty (String name) {
         if (metaClass.hasProperty(this, name )){
             return true
@@ -292,7 +299,6 @@ class WillsExpando {
         }
     }
 
-    @Override
     Map getProperties () {
         List<MetaProperty> mps = metaClass.properties
 
@@ -305,19 +311,18 @@ class WillsExpando {
             if (Modifier.isStatic(mp.modifiers))  //remove static entries from the list
                 continue
             def value = mp.getProperty(this)
-            m1 << [(name): value]
+            m1.put (name, value)
         }
 
         m1.putAll (expandoProperties)
         m1
     }
 
-    @Override
     List<MetaProperty> getMetaProperties () {
         List<MetaProperty> mps = metaClass.properties
 
         // have to stop recursion on properties, and skip dynamic concurrent maps from showing
-        List expandoMetaProperties  = []
+        List<MetaProperty> expandoMetaProperties  = []
         CachedMethod cacheGet, cacheSet
         MetaMethod metaGetter, metaSetter
 
@@ -339,7 +344,7 @@ class WillsExpando {
             metaGetter = new ClosureMetaMethod ('getAt', this.getClass(), getterClos, cacheGet)
             metaSetter = new ClosureMetaMethod ('getAt', this.getClass(), setterClos, cacheSet)
             MetaBeanProperty mbp = new MetaBeanProperty (name, this.getClass(), metaGetter, metaSetter)
-            expandoMetaProperties << mbp
+            expandoMetaProperties.add (mbp)
         }
 
         mps.addAll (expandoMetaProperties)
@@ -347,10 +352,10 @@ class WillsExpando {
     }
 
     List<MetaProperty> getStaticMetaProperties () {
-        List<MetaProperty> smps = metaClass.properties.findResults{Modifier.isStatic (it.modifiers) ? it :null}
+        List<MetaProperty> smps = (List) metaClass.properties.findResults{Modifier.isStatic (it.modifiers) ? it :null}
 
         // have to stop recursion on properties, and skip dynamic concurrent maps from showing
-        List expandoMetaProperties  = []
+        List<MetaProperty> expandoMetaProperties  = []
         CachedMethod cacheGet, cacheSet
         MetaMethod metaGetter, metaSetter
 
@@ -372,7 +377,7 @@ class WillsExpando {
             metaGetter = new ClosureMetaMethod ('getAt', this.getClass(), getterClos, cacheGet)
             metaSetter = new ClosureMetaMethod ('getAt', this.getClass(), setterClos, cacheSet)
             MetaBeanProperty mbp = new MetaBeanProperty (name, this.getClass(), metaGetter, metaSetter)
-            expandoMetaProperties << mbp
+            expandoMetaProperties.add (mbp)
         }
 
         smps.addAll (expandoMetaProperties)
@@ -434,7 +439,6 @@ class WillsExpando {
         expandoMethods.remove(name)
     }
 
-    @Override
     Closure getMethod (String name){
         List<MetaMethod> lmm = this.metaClass.getMethods()
         MetaMethod mm
@@ -445,12 +449,11 @@ class WillsExpando {
         }
     }
 
-    @Override
     Map<String, Closure> getMethods() {
         List<MetaMethod> mms = this.metaClass.metaMethods
 
         // have to stop recursion on properties, and skip dynamic concurrent maps from showing
-        Map m1 = [:]
+        Map<String, Closure> m1 = [:]
         for (mm in mms) {
             def name = mm.name
             if (name == "properties" || name == "methods" || name == "staticProperties" || name == "staticMethods")   //skip recursion here
@@ -458,12 +461,29 @@ class WillsExpando {
             if (Modifier.isStatic(mm.modifiers))  //remove static entries from the list
                 continue
             def value = new MethodClosure (WillsExpando, name)
-            m1 << [(name): value]
+            m1.put  (name, value)
         }
 
         m1.putAll(expandoProperties)
         m1
 
+    }
+
+    //non static form as we know the call instance context here
+    List<MetaMethod>  getMetaMethods () {
+
+        List<MetaMethod> mms = this.metaClass.getMetaMethods().findAll{!Modifier.isStatic (it.modifiers)}.collect()
+
+        List<MetaMethod> closureMetaMethodList =[]
+        for (entry in expandoMethods) {
+            CachedClass cachedClass = new CachedClass (this.getClass(), ClassInfo.getClassInfo(this.getClass()))
+            Method closureMethod = entry.value.getClass().getMethod('call')
+            CachedMethod cachedMethod = new CachedMethod (cachedClass, closureMethod)
+            closureMetaMethodList.add (new ClosureMetaMethod((String) entry.key, this.getClass(), (Closure) entry.value, cachedMethod ) )
+        }
+
+        mms.addAll(closureMetaMethodList)
+        mms
     }
 
     /**
@@ -473,7 +493,6 @@ class WillsExpando {
      * @param signature, varargs list of classes that the method is expected to take
      * @return
      */
-    @Override
     def getMetaMethod (String name, Class<?>... signature){
         //check metaclass first
         def expandoMethodClosure
@@ -497,7 +516,7 @@ class WillsExpando {
              */
             cacheMethod = new CachedMethod (expandoMethodClosure.getClass().getMethod( 'call'))
 
-            metaMethod = new ClosureMetaMethod (name, this.getClass(), expandoMethodClosure, cacheMethod)
+            metaMethod = new ClosureMetaMethod ((String) name, this.getClass(), (Closure)expandoMethodClosure, cacheMethod)
         }
 
         return metaMethod
@@ -533,15 +552,14 @@ class WillsExpando {
              */
             cacheMethod = new CachedMethod (expandoMethodClosure.getClass().getMethod( 'call'))
 
-            metaMethod = new ClosureStaticMetaMethod (name, this.getClass(), expandoMethodClosure)
+            metaMethod = new ClosureStaticMetaMethod ((String) name, this.getClass(), (Closure)expandoMethodClosure)
         }
 
         return metaMethod
     }
 
-    @Override
-    def invokeMethod (name, args) {
-        def mm
+    def invokeMethod (String name, args) {
+        MetaMethod mm
         if ( mm = metaClass.getMetaMethod(name, args)) {
             mm.invoke(name, args)
         } else {
@@ -553,12 +571,11 @@ class WillsExpando {
                     cmm.call()
             }
             else {
-                new MissingMethodException("Cant find method $name with $args to invoke")
+                throw new MissingMethodException(name, this.getClass())
             }
         }
     }
 
-    @Override
     def propertyMissing (String name) {
         //todo
         //look in class flex attributes first, then in metaClass if anything matches
@@ -569,13 +586,12 @@ class WillsExpando {
         if (!prop) {
             prop = metaClass.getMetaProperty(name)
             if (!prop) {
-                throw new MissingPropertyException (name, WillsExpando)
+                throw new MissingPropertyException (name, this.getClass())
             }
         }
         prop
     }
 
-    @Override
     def propertyMissing (String name, value) {
         if (value instanceof Closure || value instanceof Callable || value instanceof Function)
             addMethod (name, value)
@@ -583,21 +599,22 @@ class WillsExpando {
             addProperty(name, value)
     }
 
-    @Override
     def methodMissing (String name, args) {
         //invoked if you've done a call on the expando and it can't find one by normal path so try expandoMethods map
-        Closure method = expandoMethods[name]
-        if (!method) {
-            method = metaClass.getMetaMethod(name)
-            if (!method) {
+        Closure methodClosure = expandoMethods[name]
+        if (!methodClosure) {
+            MetaMethod mm = metaClass.getMetaMethod(name)
+            if (!mm) {
                 throw new MissingPropertyException (name, WillsExpando)
             }
+            methodClosure = new MethodClosure (this, name)
         }
-        method.delegate = this
-        if (method.maximumNumberOfParameters > 0)
-            method.call(args)
+
+        methodClosure.delegate = this
+        if (methodClosure.maximumNumberOfParameters > 0)
+            methodClosure.call(args)
         else
-            method.call()
+            methodClosure.call()
 
     }
 

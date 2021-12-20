@@ -40,6 +40,7 @@ class WillsExpandoTest {
     @Test
     void testNormalGetClass() {
         assert wtse.getClass() == WillsTestSubExpando
+        assert wtse.hasProperty('statProp')
     }
 
     @Test
