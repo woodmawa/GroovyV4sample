@@ -14,16 +14,29 @@ repositories {
     mavenCentral()
 }
 
+String groovyVersion = "4.0.0-rc-1"
+String spockVersion = "2.0-groovy-3.0"
+
 dependencies {
     //implementation 'org.apache.groovy:groovy:4.0.0-beta-2'
-    implementation group: 'org.apache.groovy', name: 'groovy', version: '4.0.0-rc-1'
+    implementation group: "org.apache.groovy", name: 'groovy', version: "${groovyVersion}"
     implementation 'org.jetbrains:annotations:20.1.0'
     //implementation group: 'org.apache.groovy', name: 'groovy-all', version: '4.0.0-beta-2', ext: 'pom'
 
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.1'
     testImplementation 'org.junit.jupiter:junit-jupiter-engine:5.8.1'
-    test
+
+    testImplementation("org.spockframework:spock-core:${spockVersion}") {
+        exclude group: 'org.codehaus.groovy'    //to do not have conflicting Groovy versions - Groovy 4 changed groupId from "org.codehaus.groovy" to "org.apache.groovy"
+    }
+    testImplementation "org.apache.groovy:groovy:${groovyVersion}"
+
     //testImplementation group: 'org.spockframework', name: 'spock-core', version: '2.0-groovy-3.0'
+}
+
+tasks.withType(GroovyCompile).configureEach {
+    // options.compilerArgs.add('-Dspock.iKnowWhatImDoing.disableGroovyVersionCheck=true')   //doesn't work
+    options.forkOptions.jvmArgs << '-Dspock.iKnowWhatImDoing.disableGroovyVersionCheck=true'    //ok
 }
 
 test {
