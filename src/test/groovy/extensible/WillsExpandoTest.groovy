@@ -290,4 +290,17 @@ class WillsExpandoTest {
 
         wtse.removeStaticProperty('staticDynamicProperty')
     }
+
+    @Test
+    void getAtTest () {
+        assert wtse.class == WillsTestSubExpando
+        assert wtse.getAt ('class') == WillsTestSubExpando
+
+        assert wtse.metaClass == WillsTestSubExpando.metaClass
+        assert wtse.stdProp == "defaultClassProp"
+        assert wtse.getAt ('stdProp') == "defaultClassProp"
+
+        wtse.putAt ('stdProp', "revised defaultClassProp")
+        assert wtse.stdProp == "revised defaultClassProp"
+    }
 }

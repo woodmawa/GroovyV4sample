@@ -201,17 +201,21 @@ class WillsExpando {
      * so we need to intercept these so that getter and setter refer to WillsExpando class
      */
     def getAt (String key) {
-        if (hasProperty(key))
-            getProperty (key.asType(String))
-        else (hasStaticExpandoProperty(key))  //better check dynamic static properties list as well
-            getStaticProperty(key)
+        def prop
+        if (hasProperty(key)) {
+            prop = getProperty(key.asType(String))
+        } else if (hasStaticExpandoProperty(key)) { //better check dynamic static properties list as well
+            prop = getStaticProperty(key)
+        }
+        prop
     }
 
     void putAt (String key, Object value) {
-        if (hasProperty(key))
-            setProperty (key.asType(String), value)
-        else (hasStaticExpandoProperty(key))
-            setStaticProperty (key.asType(String), value )
+        if (hasProperty(key)) {
+            setProperty(key.asType(String), value)
+        } else if (hasStaticExpandoProperty(key)) {
+            setStaticProperty(key.asType(String), value)
+        }
     }
 
     /*
