@@ -12,6 +12,7 @@ import org.codehaus.groovy.runtime.metaclass.ClosureMetaMethod
 import org.codehaus.groovy.runtime.metaclass.ClosureStaticMetaMethod
 import org.codehaus.groovy.runtime.metaclass.ReflectionMetaMethod
 
+import java.lang.reflect.Field
 import java.lang.reflect.Method
 import java.lang.reflect.Modifier
 import java.util.concurrent.Callable
@@ -66,13 +67,13 @@ class WillsExpando {
     //if used on a class itself we don't know the class or instance so we have to pass as a param
     static Map getStaticProperties (def ofThing) {
 
-        List allmps = ofThing.metaClass.getProperties().collect{it.name}
-
         List mps
-        if (ofThing instanceof Class<?>)
-            mps = ofThing.metaClass.getProperties().findAll{Modifier.isStatic (it.modifiers) ?it:null} //.collect()
-        else
-            mps = ofThing.metaClass.getProperties().findAll{Modifier.isStatic (it.modifiers) ?it:null}
+        if (ofThing instanceof Class<?>) {
+            mps = ofThing.metaClass.getProperties().findAll { Modifier.isStatic(it.modifiers) ? it : null } //.collect()
+        } else {
+            //if instance variable, get the metaClass and get propertes from that
+            mps = ofThing.metaClass.getProperties().findAll { Modifier.isStatic(it.modifiers) ? it : null }
+        }
         // have to stop recursion on properties, and skip dynamic concurrent maps from showing
         Map m1 = [:]
         for (mp in mps) {
@@ -83,10 +84,7 @@ class WillsExpando {
             m1.put (name, value)
         }
 
-        //cant seem to add a static property using MOP - so just get the staticExpandoProperties here
-        //List l2 = staticExpandoProperties.collect() //.asImmutable()
-        //(l1 + l2).asImmutable()
-        m1.putAll(staticExpandoProperties)
+         m1.putAll(staticExpandoProperties)
         m1
     }
 
@@ -306,7 +304,7 @@ class WillsExpando {
         Map m1 = [:]
         for (mp in mps) {
             def name = mp.name
-            if (name == "properties" || name == "methods" || name == "staticProperties" || name == "staticMethods")   //skip recursion here
+            if (name == "properties" )   //skip recursion here
                 continue
             if (Modifier.isStatic(mp.modifiers))  //remove static entries from the list
                 continue

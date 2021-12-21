@@ -65,12 +65,14 @@ class WillsExpandoTest {
 
     @Test
     void addDynamicPropertiesAndCheckProperties () {
+        Map props = wtse.properties
+        int beforeSize = props.size()
+
         wtse.myProp = "my dynamic prop"
         wtse.myProp2 = "my 2nd dynamic prop"
 
-        Map props = wtse.properties
-
-        assert props.size() == 5
+        props = wtse.properties
+        assert props.size() == beforeSize + 2
         assert props["myProp"] == "my dynamic prop"
     }
 
@@ -78,15 +80,15 @@ class WillsExpandoTest {
     void queryProperties () {
         //get default properties
         Map props = wtse.properties
+        int beforeSize = props.size()
 
         assert props.find{it.key.contains("stdProp")}.key == 'stdProp'  //standard class property
         assert props.find {it.key.contains("class")}.key == "class"
         assert props.find{it.key.contains("static")}.key == 'static'
-        assert props.size() == 3
 
         wtse.dynProp = "added property"
         props = wtse.properties
-        assert props.size() == 4
+        assert props.size() == beforeSize + 1
         assert props.find{it.key.contains("dynProp")}.key == 'dynProp'
 
 
