@@ -69,7 +69,7 @@ class WillsExpando {
 
         List mps
         if (ofThing instanceof Class<?>) {
-            mps = ofThing.metaClass.getProperties().findAll { Modifier.isStatic(it.modifiers) ? it : null } //.collect()
+            mps = ofThing.metaClass.getProperties().findAll { Modifier.isStatic(it.modifiers) ? it : null }
         } else {
             //if instance variable, get the metaClass and get propertes from that
             mps = ofThing.metaClass.getProperties().findAll { Modifier.isStatic(it.modifiers) ? it : null }
@@ -109,19 +109,6 @@ class WillsExpando {
         m1
     }
 
-    static def addStaticMethod (String name , def value) {
-        if (value instanceof Closure || value instanceof Callable || value instanceof Function)
-            staticExpandoMethods.put(name, value)
-    }
-
-    static void removeStaticMethod (String name) {
-        staticExpandoMethods.remove(name)
-    }
-
-    static Closure getStaticMethod (String name){
-        staticExpandoMethods[name]
-    }
-
     boolean hasStaticExpandoProperty (String name) {
         def propertyExists
         MetaProperty
@@ -134,7 +121,24 @@ class WillsExpando {
         } else {
             staticExpandoProperties[name] ? true : false
         }
-     }
+    }
+
+
+    /**
+     * Standard static method access methods
+     */
+    static def addStaticMethod (String name , def value) {
+        if (value instanceof Closure || value instanceof Callable || value instanceof Function)
+            staticExpandoMethods.put(name, value)
+    }
+
+    static void removeStaticMethod (String name) {
+        staticExpandoMethods.remove(name)
+    }
+
+    static Closure getStaticMethod (String name){
+        staticExpandoMethods[name]
+    }
 
     //if used on static class we dont know the context so we have to pass as a param to get the MetaMethods
     static Map  getStaticMethods (ofThing) {
@@ -182,21 +186,6 @@ class WillsExpando {
     }
 
 
-    def addProperty (String name , def value) {
-        if (value instanceof Closure || value instanceof Callable || value instanceof Function )
-            addMethod (name, value )
-        else
-            expandoProperties.put(name, value)
-    }
-
-    def addProperties (Map props) {
-        props.each {prop, value -> addProperty ((String)prop, value)}
-    }
-
-    def removeProperty (String name) {
-        expandoProperties.remove(name)
-    }
-
     /*
      * next two methods are delegating proxies for ConcurrentMap when generating MetaProperties for WillsExpando
      * defer to standard props first then look at the private expandoProperties ConcurrentMap, then the staticExpandoProperties
@@ -218,6 +207,25 @@ class WillsExpando {
         } else if (hasStaticExpandoProperty(key)) {
             setStaticProperty(key.asType(String), value)
         }
+    }
+
+    /**
+     * Standard property access methods
+     */
+
+    def addProperty (String name , def value) {
+        if (value instanceof Closure || value instanceof Callable || value instanceof Function )
+            addMethod (name, value )
+        else
+            expandoProperties.put(name, value)
+    }
+
+    def addProperties (Map props) {
+        props.each {prop, value -> addProperty ((String)prop, value)}
+    }
+
+    def removeProperty (String name) {
+        expandoProperties.remove(name)
     }
 
     /*
@@ -289,6 +297,12 @@ class WillsExpando {
         MetaBeanProperty mbp = new MetaBeanProperty (name, this.getClass(), metaGetter, metaSetter)
         mbp
     }
+
+    List getMetaPropertyValues () {
+        List<MetaProperty> mp = getMetaProperties()
+        mp
+    }
+
 
     /**
      * checks if it has the property, or it exists in the expandoProperties
@@ -433,6 +447,9 @@ class WillsExpando {
         mbp
     }
 
+    /**
+     * Standard method access methods
+     */
 
     def addMethod (String name , def value) {
         if (value instanceof Closure || value instanceof Callable || value instanceof Function)
@@ -579,6 +596,11 @@ class WillsExpando {
             }
         }
     }
+
+    /**
+     * groovy methods for handling cases where no standard method is defined for the expando
+     * and adds these to the appropriate map areas in the expando
+     */
 
     def propertyMissing (String name) {
         //todo
