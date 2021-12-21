@@ -78,7 +78,7 @@ class WillsExpando {
         Map m1 = [:]
         for (mp in mps) {
             def name = mp.name
-            if (name == "properties" || name == "methods" ||name == "staticProperties" || name == "staticMethods")   //skip recursion here
+            if (name == "properties" || name == "methods" ||name == "staticProperties" )   //skip recursion here
                 continue
             def value = mp.getProperty(this)
             m1.put (name, value)
@@ -96,7 +96,7 @@ class WillsExpando {
         Map m1 = [:]
         for (mp in mps) {
             def name = mp.name
-            if (name == "properties" || name == "methods" ||name == "staticProperties" || name == "staticMethods")   //skip recursion here
+            if (name == "properties" || name == "methods" ||name == "staticProperties" )   //skip recursion here
                 continue
             def value = mp.getProperty(this)
             m1.put (name, value)
@@ -153,7 +153,9 @@ class WillsExpando {
 
     //non static form as we know the call instance context here
     Map  getStaticMethods () {
-        List<MetaMethod> mms = this.metaClass.getMetaMethods().findAll{Modifier.isStatic (it.modifiers)}.collect()
+        List allMms = this.metaClass.getMethods().findResults{ it.name.contains('static') ? it : null}.collect()
+
+        List<MetaMethod> mms = this.metaClass.getMethods().findResults{ it.name.contains('static') ? it : null}.collect()
 
         Map m1 =[:]
         for (mm in mms){
@@ -168,7 +170,7 @@ class WillsExpando {
     //non static form as we know the call instance context here
     List<MetaMethod>  getStaticMetaMethods () {
 
-        List<MetaMethod> mms = this.metaClass.getMetaMethods().findAll{Modifier.isStatic (it.modifiers)}.collect()
+        List<MetaMethod> mms = this.metaClass.getMethods().findResults{Modifier.isStatic (it.modifiers) ? it : null}.collect()
 
         List<MetaMethod> closureMetaMethodList =[]
         for (entry in staticExpandoMethods) {

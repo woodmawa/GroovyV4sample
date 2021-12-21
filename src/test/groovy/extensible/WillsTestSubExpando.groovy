@@ -12,4 +12,8 @@ class WillsTestSubExpando extends WillsExpando {
     def testMethod (String test) {
         test + " : hello from test method"
     }
+
+    static def staticTestMethod (String test) {
+        test + " : hello from static test method"
+    }
 }

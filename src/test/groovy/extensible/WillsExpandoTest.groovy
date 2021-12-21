@@ -292,7 +292,7 @@ class WillsExpandoTest {
     }
 
     @Test
-    void getAtTest () {
+    void getAtAndPutAtTest () {
         assert wtse.class == WillsTestSubExpando
         assert wtse.getAt ('class') == WillsTestSubExpando
 
@@ -302,5 +302,14 @@ class WillsExpandoTest {
 
         wtse.putAt ('stdProp', "revised defaultClassProp")
         assert wtse.stdProp == "revised defaultClassProp"
+    }
+
+    @Test
+    void getStaticMethodsTest () {
+        Map statMethods = wtse.getStaticMethods()
+
+        assert statMethods
+        assert statMethods['staticTestMethod'] != null
+
     }
 }
