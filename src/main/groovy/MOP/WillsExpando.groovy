@@ -109,6 +109,7 @@ class WillsExpando {
         m1
     }
 
+
     boolean hasStaticExpandoProperty (String name) {
         def propertyExists
         MetaProperty
