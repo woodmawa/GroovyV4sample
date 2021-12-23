@@ -34,5 +34,6 @@ class SpockTest extends Specification {
         [[1,2],[3,4,5]].permutations() == [ [[1, 2], [3, 4, 5]], [[3, 4, 5], [1, 2]] ].toSet()
         list.disjoint ([2,4,6]) == false
         ['a','b','c'].join('-') ==  "a-b-c"
+
     }
 }
