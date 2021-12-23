@@ -1,4 +1,4 @@
-package utils
+package groovyGDK
 
 import spock.lang.Specification
 
@@ -24,5 +24,10 @@ class SpockTest extends Specification {
         list.unique() == [1,2,3,4,5,6]
         list - [4,5,6] == [1,2,3]  // removes all numbers from the sublist
         list.split { it > 3} [[1,2,3,3], [4,5,5,6]]
+        list.intersect([1,2,5,5,9]) == [1,2,5]
+        list.indexOf(4) == 3  //index starts at 0
+        list.contains(7) == false
+        [[1,2],[3,4,5]].combinations() == [[1, 3], [2, 3], [1, 4], [2, 4], [1, 5], [2, 5]]
+        [[1,2],[3,4,5]].permutations() == [ [[1, 2], [3, 4, 5]], [[3, 4, 5], [1, 2]] ].toSet()
     }
 }
