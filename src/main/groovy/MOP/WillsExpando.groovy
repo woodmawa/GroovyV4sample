@@ -299,9 +299,10 @@ class WillsExpando {
         mbp
     }
 
-    List getMetaPropertyValues () {
+    List<PropertyValue> getMetaPropertyValues () {
         List<MetaProperty> mp = getMetaProperties()
-        mp
+        List<PropertyValue> listPropValue = mp.collect {metaProp -> new PropertyValue (this, metaProp)}
+        listPropValue
     }
 
 
