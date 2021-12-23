@@ -36,4 +36,9 @@ class SpockTest extends Specification {
         ['a','b','c'].join('-') ==  "a-b-c"
 
     }
+
+    def "streams test" () {
+        expect:
+        [1,2,3,3,4,5,5,6].stream().filter {it % 2 == 0}.toSet() as Set  == [2,4,6] as Set
+    }
 }
