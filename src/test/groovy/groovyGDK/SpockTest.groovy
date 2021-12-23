@@ -20,6 +20,9 @@ class SpockTest extends Specification {
         list.dropWhile {it < 4} == [4,5,5,6]
         list.grep {it % 2 == 0} == [2,4,6]
         list.inject (0) { sum, it -> sum + it} == 29
+        list.sum() == 29
+        list.max() == 6
+        list.min() == 1
         list.toSet() == new HashSet([1,2,3,3,4,5,5,6])
         list.unique() == [1,2,3,4,5,6]
         list - [4,5,6] == [1,2,3]  // removes all numbers from the sublist
@@ -29,5 +32,7 @@ class SpockTest extends Specification {
         list.contains(7) == false
         [[1,2],[3,4,5]].combinations() == [[1, 3], [2, 3], [1, 4], [2, 4], [1, 5], [2, 5]]
         [[1,2],[3,4,5]].permutations() == [ [[1, 2], [3, 4, 5]], [[3, 4, 5], [1, 2]] ].toSet()
+        list.disjoint ([2,4,6]) == false
+        ['a','b','c'].join('-') ==  "a-b-c"
     }
 }
