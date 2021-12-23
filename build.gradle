@@ -30,6 +30,7 @@ dependencies {
         exclude group: 'org.codehaus.groovy'    //to do not have conflicting Groovy versions - Groovy 4 changed groupId from "org.codehaus.groovy" to "org.apache.groovy"
     }
     testImplementation "org.apache.groovy:groovy:${groovyVersion}"
+    testImplementation "org.apache.groovy:groovy-test:${groovyVersion}"
 
     //testImplementation group: 'org.spockframework', name: 'spock-core', version: '2.0-groovy-3.0'
 }
