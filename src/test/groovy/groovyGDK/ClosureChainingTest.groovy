@@ -39,4 +39,27 @@ class ClosureChainingTest extends Specification {
         f_Before_g(1 ) == 6
 
     }
+
+    @Test
+    def " try out" () {
+        given :
+        MyClass mc = new MyClass ()
+        mc.value = 1
+        when :
+        def result = mc >> {it *10} //rightShift applies mc.value to the closure and returns the result
+        then:
+        11 == mc.closure(1) + mc.value
+        result == 10
+    }
+}
+
+class MyClass {
+
+    def value
+    def closure
+
+    def rightShift (Closure clos) {
+        closure = clos
+        closure(value)
+    }
 }
