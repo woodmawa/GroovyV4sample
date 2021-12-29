@@ -54,7 +54,6 @@ class ClosureChainingTest extends Specification {
 }
 
 class MyClass {
-
     def value
     def closure
 
