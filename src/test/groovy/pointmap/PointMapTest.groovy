@@ -53,7 +53,7 @@ class PointMapTest extends Specification {
         result == "william"
     }
 
-    def "validate row and column sizing " () {
+    def "add rows using String variable instead of number " () {
         given:
         Point p1 = new Point("a", 0)
         Point p2 = new Point("a", 1)
@@ -76,6 +76,7 @@ class PointMapTest extends Specification {
         def colCount = map.getColumnCount()
         def zIndexCount = map.getZindexCount()
 
+        def cols = map.getColumnEntryList(1)
 
         then:
          rowEntries

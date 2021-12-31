@@ -43,7 +43,10 @@ class PointMap {
         ConcurrentHashMap.KeySetView keys = multiMap.keySet()
 
         List<Point> colEntries = keys.iterator().findAll { Point p -> p.y == colNumber}
-        colEntries.sort().asImmutable()
+        List<Point> sorted = colEntries.sort(false){Point a,b ->
+            a.x <=> b.x ?: a.y <=> b.y ?: a.z <=> b.z
+        }.asImmutable()
+        sorted
     }
 
     long getColumnCount () {
