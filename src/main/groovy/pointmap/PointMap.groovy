@@ -3,7 +3,7 @@ package pointmap
 import java.util.concurrent.ConcurrentHashMap
 
 class PointMap {
-    private ConcurrentHashMap multiMap = new ConcurrentHashMap()
+    private ConcurrentHashMap<Point, Object> multiMap = new ConcurrentHashMap()
 
     Point origin = new Point (0,0,0)
 
@@ -11,24 +11,32 @@ class PointMap {
         multiMap.clear()
     }
 
-    void put (Point point, def value ) {
+    void put (final Point point, def value ) {
         multiMap.put (point, value)
     }
 
     void put (x,y,z, def value) {
-        Point point = new Point (x,y,z)
+        final Point point = new Point (x,y,z)
         put (point, value)
     }
 
-    def get (Point point) {
-        multiMap[point]
+    def get (final Point point) {
+        ConcurrentHashMap.KeySetView ks = multiMap.keySet()
+        Point firstKeyEntry = ks.asList()[0]
+
+        assert firstKeyEntry == point
+        assert firstKeyEntry.hashCode() == point.hashCode()
+        assert multiMap.containsKey((Point)point)
+
+        Point p = multiMap.get(point)
+        p
     }
 
     List<Point> getRowEntryList (rowNumber) {
         ConcurrentHashMap.KeySetView keys = multiMap.keySet()
 
         List<Point> rowEntries = keys.iterator().findAll { Point p -> p.x == rowNumber}
-        rowEntries.asImmutable()
+        rowEntries.sort().asImmutable()
     }
 
     long getRowCount () {
@@ -42,7 +50,7 @@ class PointMap {
         ConcurrentHashMap.KeySetView keys = multiMap.keySet()
 
         List<Point> colEntries = keys.iterator().findAll { Point p -> p.y == colNumber}
-        colEntries.asImmutable()
+        colEntries.sort().asImmutable()
     }
 
     long getColumnCount () {
@@ -56,7 +64,7 @@ class PointMap {
         ConcurrentHashMap.KeySetView keys = multiMap.keySet()
 
         List<Point> zEntries = keys.iterator().findAll { Point p -> p.z == zIdx}
-        zEntries.asImmutable()
+        zEntries.sort().asImmutable()
     }
 
     long getZindexCount () {
@@ -70,7 +78,7 @@ class PointMap {
         ConcurrentHashMap.KeySetView keys = multiMap.keySet()
 
         List<Point> tEntries = keys.iterator().findAll { Point p -> p.t == tIdx}
-        tEntries.asImmutable()
+        tEntries.sort().asImmutable()
     }
 
     long getTindexCount () {
@@ -84,7 +92,7 @@ class PointMap {
         ConcurrentHashMap.KeySetView keys = multiMap.keySet()
 
         List<Point> uEntries = keys.iterator().findAll { Point p -> p.u == uIdx}
-        uEntries.asImmutable()
+        uEntries.sort().asImmutable()
     }
 
     long getUindexCount () {
@@ -98,7 +106,7 @@ class PointMap {
         ConcurrentHashMap.KeySetView keys = multiMap.keySet()
 
         List<Point> vEntries = keys.iterator().findAll { Point p -> p.v == vIdx}
-        vEntries.asImmutable()
+        vEntries.sort().asImmutable()
     }
 
     long getVindexCount () {

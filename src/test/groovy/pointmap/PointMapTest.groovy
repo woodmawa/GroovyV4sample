@@ -31,8 +31,7 @@ class PointMapTest extends Specification {
         then:
         rowZero
         rowZero.size() == 2
-        rowZero[0] == p1
-        rowZero[1] == p2
+        rowZero == [p1, p2]
 
         and:
         colOne

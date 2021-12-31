@@ -15,6 +15,11 @@ class PointTest extends Specification {
         new Point (0,0) == new Point (0, 0)
     }
 
+    def "test point hashCode equality" () {
+        expect:
+        new Point (0,0).hashCode() == new Point (0, 0).hashCode()
+    }
+
     def "testToString" () {
         expect:
         new Point (0,0).toString() == "Point (Optional[0], Optional[0], Optional.empty, Optional.empty, Optional.empty, Optional.empty)"

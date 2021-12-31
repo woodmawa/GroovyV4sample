@@ -3,8 +3,8 @@ package pointmap
 import groovy.transform.EqualsAndHashCode
 import groovy.transform.ToString
 
-@EqualsAndHashCode(includeFields = true)
 @ToString
+@EqualsAndHashCode (includeFields = true)
 class Point {
     private Optional<Object> x = Optional.empty()  //1 dimension
     private Optional<Object> y = Optional.empty()  //2 dimension
@@ -57,6 +57,15 @@ class Point {
 
     Object getV () {
         v.orElse (new Object())
+    }
+
+    boolean equals (Point other) {
+        this.@x == other.@x &&
+        this.@y == other.@y &&
+        this.@z == other.@z &&
+        this.@t == other.@t &&
+        this.@u == other.@u &&
+        this.@v == other.@v
     }
 
     String toString() {
