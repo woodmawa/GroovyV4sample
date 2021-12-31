@@ -21,15 +21,8 @@ class PointMap {
     }
 
     def get (final Point point) {
-        ConcurrentHashMap.KeySetView ks = multiMap.keySet()
-        Point firstKeyEntry = ks.asList()[0]
-
-        assert firstKeyEntry == point
-        assert firstKeyEntry.hashCode() == point.hashCode()
-        assert multiMap.containsKey((Point)point)
-
-        Point p = multiMap.get(point)
-        p
+        def value  = multiMap.get(point)
+        value
     }
 
     List<Point> getRowEntryList (rowNumber) {

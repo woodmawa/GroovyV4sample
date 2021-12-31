@@ -59,7 +59,11 @@ class Point {
         v.orElse (new Object())
     }
 
-    boolean equals (Point other) {
+    //equals on object expects Object - so dont create alternative
+    @Override
+    boolean equals (Object other) {
+        assert other instanceof Point, "other must be an instance of Point"
+
         this.@x == other.@x &&
         this.@y == other.@y &&
         this.@z == other.@z &&
