@@ -36,17 +36,16 @@ class PointTest extends Specification {
          *  first function gets the optional itself, the second comparing gets the value from the optional
          * however this wouldnt handle Nulls, without the NullsFirst() which assumes null < value
          */
-        Comparator<Integer> icomp =
-                comparing(
+        Comparator<Integer> compareOptionals = comparing (
                         IncludesOptionals::getVar,
                         //comparing(opt -> opt.orElse(null), nullsLast(naturalOrder()))  - )
                         //nullsFirst assumes null is less than a non-null value
                         comparing(opt -> opt.orElse(null), Comparator.nullsFirst(Comparator.naturalOrder()))
                 )
 
-        def lowerLessRes = icomp.compare(io1,io2)
-        def higherGreaterRes = icomp.compare(io2,io1)
-        def equalRes = icomp.compare(io1,io1)
+        def lowerLessRes = compareOptionals.compare(io1,io2)
+        def higherGreaterRes = compareOptionals.compare(io2,io1)
+        def equalRes = compareOptionals.compare(io1,io1)
 
         def lowerLessNullRes = icomp.compare(ioNull,io1)
 
@@ -71,5 +70,20 @@ class PointTest extends Specification {
     def "testToString" () {
         expect:
         new Point (0,0).toString() == "Point (Optional[0], Optional[0], Optional.empty, Optional.empty, Optional.empty, Optional.empty)"
+    }
+
+    def "test compare Points" () {
+        given:
+        Point pNull = new Point (null, 0)
+        Point p1 = new Point (0,0)
+        Point p2 = new Point (1,0)
+        Point p3 = new Point (0, 1)
+        Point pt = new Point (0,0, 1)
+
+        expect:
+        p1.compareTo(p2) == -1
+        pNull.compareTo(p1) == -1
+        p2.compareTo(p3) == 1
+        p1.compareTo(p3) == -1
     }
 }

@@ -1,9 +1,17 @@
 package pointmap
 
 import java.util.concurrent.ConcurrentHashMap
+import static java.util.Comparator.comparing
 
 class PointMap {
     private ConcurrentHashMap<Point, Object> multiMap = new ConcurrentHashMap()
+
+    private Comparator compareOptionals = comparing (
+            Point::getOptionalAxis,
+            //comparing(opt -> opt.orElse(null), nullsLast(naturalOrder()))  - )
+            //nullsFirst assumes null is less than a non-null value
+            comparing(opt -> opt.orElse(null), Comparator.nullsFirst(Comparator.naturalOrder()))
+    )
 
     Point origin = new Point (0,0,0)
 
