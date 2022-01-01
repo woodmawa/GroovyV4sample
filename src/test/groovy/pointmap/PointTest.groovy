@@ -2,6 +2,12 @@ package pointmap
 
 import spock.lang.Specification
 
+import static java.util.Comparator.comparing
+
+class IncludesOptionals {
+    Optional var = Optional.empty()
+}
+
 class PointTest extends Specification {
 
     def "optional equality test " () {
@@ -14,11 +20,38 @@ class PointTest extends Specification {
         given:
         Optional one = Optional.of(1)
         Optional two = Optional.of (2)
-        def comparator = Comparator.comparing (Integer::compare(), Comparator.comparing(Optional::get))
-        def result = comparator.comparing(one, two)
+        //def comparator = Comparator.comparing (Integer::compare(), Comparator.comparing(Optional::get))
+        //def result = comparator.comparing(one, two)
+
+        IncludesOptionals io1 = new IncludesOptionals()
+        io1.var = Optional.of(1)
+        IncludesOptionals io2 = new IncludesOptionals()
+        io2.var = Optional.of(2)
+        IncludesOptionals ioNull = new IncludesOptionals()
+
+        def oneLessThantwo = 1.compareTo(2)
+        def twoGreaterThanOne = 2.compareTo(1)
+
+        Comparator<Integer> icomp =
+                comparing(
+                        IncludesOptionals::getVar,
+                        //comparing(opt -> opt.orElse(null), nullsLast(naturalOrder()))  - )
+                        //nullsFirst assumes null is less than a non-null value 
+                        comparing(opt -> opt.orElse(null), Comparator.nullsFirst(Comparator.naturalOrder()))
+                )
+
+        def lowerLessRes = icomp.compare(io1,io2)
+        def higherGreaterRes = icomp.compare(io2,io1)
+        def equalRes = icomp.compare(io1,io1)
+
+        def lowerLessNullRes = icomp.compare(ioNull,io1)
 
         expect:
-        result
+        //result
+        lowerLessRes == -1
+        higherGreaterRes == 1
+        equalRes == 0
+        lowerLessNullRes == -1
     }
 
     def "test point equality" () {
