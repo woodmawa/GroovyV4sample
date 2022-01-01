@@ -20,6 +20,8 @@ class PointTest extends Specification {
         given:
         Optional one = Optional.of(1)
         Optional two = Optional.of (2)
+        Optional empty = Optional.ofNullable (null)
+
         //def comparator = Comparator.comparing (Integer::compare(), Comparator.comparing(Optional::get))
         //def result = comparator.comparing(one, two)
 
@@ -36,18 +38,22 @@ class PointTest extends Specification {
          *  first function gets the optional itself, the second comparing gets the value from the optional
          * however this wouldnt handle Nulls, without the NullsFirst() which assumes null < value
          */
-        Comparator<Integer> compareOptionals = comparing (
+        Comparator<Integer> compareIncludesOptionals = comparing (
                         IncludesOptionals::getVar,
                         //comparing(opt -> opt.orElse(null), nullsLast(naturalOrder()))  - )
                         //nullsFirst assumes null is less than a non-null value
                         comparing(opt -> opt.orElse(null), Comparator.nullsFirst(Comparator.naturalOrder()))
                 )
 
-        def lowerLessRes = compareOptionals.compare(io1,io2)
-        def higherGreaterRes = compareOptionals.compare(io2,io1)
-        def equalRes = compareOptionals.compare(io1,io1)
+        def lowerLessRes = compareIncludesOptionals.compare(io1,io2)
+        def higherGreaterRes = compareIncludesOptionals.compare(io2,io1)
+        def equalRes = compareIncludesOptionals.compare(io1,io1)
 
-        def lowerLessNullRes = icomp.compare(ioNull,io1)
+        def lowerLessNullRes = compareIncludesOptionals.compare(ioNull,io1)
+
+        Comparator compareOptionals = comparing (opt -> opt.orElse(null), Comparator.nullsFirst(Comparator.naturalOrder())
+        )
+
 
         expect:
         //result
@@ -55,6 +61,11 @@ class PointTest extends Specification {
         higherGreaterRes == 1
         equalRes == 0
         lowerLessNullRes == -1
+
+        compareOptionals (one,two) == -1
+        compareOptionals (two,one) == 1
+        compareOptionals (null,one) == -1
+
     }
 
     def "test point equality" () {

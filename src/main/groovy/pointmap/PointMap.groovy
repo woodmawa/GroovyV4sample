@@ -7,9 +7,6 @@ class PointMap {
     private ConcurrentHashMap<Point, Object> multiMap = new ConcurrentHashMap()
 
     private Comparator compareOptionals = comparing (
-            Point::getOptionalAxis,
-            //comparing(opt -> opt.orElse(null), nullsLast(naturalOrder()))  - )
-            //nullsFirst assumes null is less than a non-null value
             comparing(opt -> opt.orElse(null), Comparator.nullsFirst(Comparator.naturalOrder()))
     )
 
@@ -51,8 +48,8 @@ class PointMap {
         ConcurrentHashMap.KeySetView keys = multiMap.keySet()
 
         List<Point> colEntries = keys.iterator().findAll { Point p -> p.y == colNumber}
-        List<Point> sorted = colEntries.sort(false){Point a,b ->
-            a.x <=> b.x ?: a.y <=> b.y ?: a.z <=> b.z
+        List<Point> sorted = colEntries.sort(false){Point a, Point b ->
+            compareOptionals(a.getOptionalAxis('x') <=> b.getOptionalAxis('x')) ?: a.y <=> b.y ?: a.z <=> b.z
         }.asImmutable()
         sorted
     }
