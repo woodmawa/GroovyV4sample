@@ -32,7 +32,7 @@ class PointTest extends Specification {
         def oneLessThantwo = 1.compareTo(2)
         def twoGreaterThanOne = 2.compareTo(1)
 
-        /** create an integer comparator using nested comparing.
+        /** create an integer comparator using nested comparing.  External means to generate a compare, when you cant implement compareTo
          *  first function gets the optional itself, the second comparing gets the value from the optional
          * however this wouldnt handle Nulls, without the NullsFirst() which assumes null < value
          */
