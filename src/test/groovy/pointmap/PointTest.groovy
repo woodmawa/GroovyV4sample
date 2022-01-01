@@ -54,6 +54,16 @@ class PointTest extends Specification {
         Comparator compareOptionals = comparing (opt -> opt.orElse(null), Comparator.nullsFirst(Comparator.naturalOrder())
         )
 
+        Closure cmpOptionals = {Optional first, Optional second ->
+            def firstVal = first.orElse(null)
+            def secondVal = second.orElse(null)
+
+            if (firstVal && secondVal)
+                assert firstVal.getClass() == secondVal.getClass()
+
+            firstVal <=> secondVal
+        }
+
 
         expect:
         //result
@@ -62,9 +72,9 @@ class PointTest extends Specification {
         equalRes == 0
         lowerLessNullRes == -1
 
-        compareOptionals (one,two) == -1
-        compareOptionals (two,one) == 1
-        compareOptionals (null,one) == -1
+        cmpOptionals (one,two) == -1
+        cmpOptionals (two,one) == 1
+        cmpOptionals (empty,one) == -1
 
     }
 

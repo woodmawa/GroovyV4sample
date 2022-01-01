@@ -6,9 +6,15 @@ import static java.util.Comparator.comparing
 class PointMap {
     private ConcurrentHashMap<Point, Object> multiMap = new ConcurrentHashMap()
 
-    private Comparator compareOptionals = comparing (
-            comparing(opt -> opt.orElse(null), Comparator.nullsFirst(Comparator.naturalOrder()))
-    )
+    private Closure compareOptionals = {Optional first, Optional second ->
+        def firstVal = first.orElse(null)
+        def secondVal = second.orElse(null)
+
+        if (firstVal && secondVal)
+            assert firstVal.getClass() == secondVal.getClass()
+
+        firstVal <=> secondVal
+    }
 
     Point origin = new Point (0,0,0)
 
@@ -49,7 +55,9 @@ class PointMap {
 
         List<Point> colEntries = keys.iterator().findAll { Point p -> p.y == colNumber}
         List<Point> sorted = colEntries.sort(false){Point a, Point b ->
-            compareOptionals(a.getOptionalAxis('x') <=> b.getOptionalAxis('x')) ?: a.y <=> b.y ?: a.z <=> b.z
+            compareOptionals(a.getOptionalAxis('x') <=> b.getOptionalAxis('x')) ?:
+                    compareOptionals(a.getOptionalAxis('y') <=> b.getOptionalAxis('y')) ?:
+                            compareOptionals(a.getOptionalAxis('z') <=> b.getOptionalAxis('z'))
         }.asImmutable()
         sorted
     }
