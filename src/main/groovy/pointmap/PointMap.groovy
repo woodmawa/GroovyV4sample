@@ -4,8 +4,12 @@ import java.util.concurrent.ConcurrentHashMap
 import static java.util.Comparator.comparing
 
 class PointMap {
+    @Delegate
     private ConcurrentHashMap<Point, Object> multiMap = new ConcurrentHashMap()
 
+    /**
+     * optional doesnt implement comparable - local closure to do the job
+     */
     private Closure compareOptionals = {Optional first, Optional second ->
         def firstVal = first.orElse(null)
         def secondVal = second.orElse(null)
@@ -22,11 +26,11 @@ class PointMap {
         multiMap.clear()
     }
 
-    void put (final Point point, def value ) {
+    def put (final Point point, def value ) {
         multiMap.put (point, value)
     }
 
-    void put (x,y,z, def value) {
+    def put (x,y,z, def value) {
         final Point point = new Point (x,y,z)
         put (point, value)
     }
@@ -36,11 +40,19 @@ class PointMap {
         value
     }
 
-    List<Point> getRowEntryList (rowNumber) {
+    List<Point> getRowEntryList (final def rowNumber) {
         ConcurrentHashMap.KeySetView keys = multiMap.keySet()
 
         List<Point> rowEntries = keys.iterator().findAll { Point p -> p.x == rowNumber}
-        rowEntries.sort().asImmutable()
+        rowEntries.sort(false){Point a, Point b ->
+            compareOptionals(a.getOptionalAxis("x"),b.getOptionalAxis("x")) ?:
+                    compareOptionals(a.getOptionalAxis("y"), b.getOptionalAxis("y")) ?:
+                            compareOptionals(a.getOptionalAxis("z"), b.getOptionalAxis("z")) ?:
+                                    compareOptionals(a.getOptionalAxis("t"), b.getOptionalAxis("t")) ?:
+                                            compareOptionals(a.getOptionalAxis("u"), b.getOptionalAxis("u")) ?:
+                                                    compareOptionals(a.getOptionalAxis("v"), b.getOptionalAxis("v"))
+
+        }.asImmutable()
     }
 
     long getRowCount () {
@@ -55,9 +67,13 @@ class PointMap {
 
         List<Point> colEntries = keys.iterator().findAll { Point p -> p.y == colNumber}
         List<Point> sorted = colEntries.sort(false){Point a, Point b ->
-            compareOptionals(a.getOptionalAxis('x') <=> b.getOptionalAxis('x')) ?:
-                    compareOptionals(a.getOptionalAxis('y') <=> b.getOptionalAxis('y')) ?:
-                            compareOptionals(a.getOptionalAxis('z') <=> b.getOptionalAxis('z'))
+             compareOptionals(a.getOptionalAxis("x"),b.getOptionalAxis("x")) ?:
+                    compareOptionals(a.getOptionalAxis("y"), b.getOptionalAxis("y")) ?:
+                            compareOptionals(a.getOptionalAxis("z"), b.getOptionalAxis("z")) ?:
+                                    compareOptionals(a.getOptionalAxis("t"), b.getOptionalAxis("t")) ?:
+                                            compareOptionals(a.getOptionalAxis("u"), b.getOptionalAxis("u")) ?:
+                                                    compareOptionals(a.getOptionalAxis("v"), b.getOptionalAxis("v"))
+
         }.asImmutable()
         sorted
     }
@@ -73,7 +89,15 @@ class PointMap {
         ConcurrentHashMap.KeySetView keys = multiMap.keySet()
 
         List<Point> zEntries = keys.iterator().findAll { Point p -> p.z == zIdx}
-        zEntries.sort().asImmutable()
+        zEntries.sort(false){Point a, Point b ->
+            compareOptionals(a.getOptionalAxis("x"),b.getOptionalAxis("x")) ?:
+                    compareOptionals(a.getOptionalAxis("y"), b.getOptionalAxis("y")) ?:
+                            compareOptionals(a.getOptionalAxis("z"), b.getOptionalAxis("z")) ?:
+                                    compareOptionals(a.getOptionalAxis("t"), b.getOptionalAxis("t")) ?:
+                                            compareOptionals(a.getOptionalAxis("u"), b.getOptionalAxis("u")) ?:
+                                                    compareOptionals(a.getOptionalAxis("v"), b.getOptionalAxis("v"))
+
+        }.asImmutable()
     }
 
     long getZindexCount () {
@@ -87,7 +111,15 @@ class PointMap {
         ConcurrentHashMap.KeySetView keys = multiMap.keySet()
 
         List<Point> tEntries = keys.iterator().findAll { Point p -> p.t == tIdx}
-        tEntries.sort().asImmutable()
+        tEntries.sort(false){Point a, Point b ->
+            compareOptionals(a.getOptionalAxis("x"),b.getOptionalAxis("x")) ?:
+                    compareOptionals(a.getOptionalAxis("y"), b.getOptionalAxis("y")) ?:
+                            compareOptionals(a.getOptionalAxis("z"), b.getOptionalAxis("z")) ?:
+                                    compareOptionals(a.getOptionalAxis("t"), b.getOptionalAxis("t")) ?:
+                                            compareOptionals(a.getOptionalAxis("u"), b.getOptionalAxis("u")) ?:
+                                                    compareOptionals(a.getOptionalAxis("v"), b.getOptionalAxis("v"))
+
+        }.asImmutable()
     }
 
     long getTindexCount () {
@@ -101,7 +133,15 @@ class PointMap {
         ConcurrentHashMap.KeySetView keys = multiMap.keySet()
 
         List<Point> uEntries = keys.iterator().findAll { Point p -> p.u == uIdx}
-        uEntries.sort().asImmutable()
+        uEntries.sort(false){Point a, Point b ->
+            compareOptionals(a.getOptionalAxis("x"),b.getOptionalAxis("x")) ?:
+                    compareOptionals(a.getOptionalAxis("y"), b.getOptionalAxis("y")) ?:
+                            compareOptionals(a.getOptionalAxis("z"), b.getOptionalAxis("z")) ?:
+                                    compareOptionals(a.getOptionalAxis("t"), b.getOptionalAxis("t")) ?:
+                                            compareOptionals(a.getOptionalAxis("u"), b.getOptionalAxis("u")) ?:
+                                                    compareOptionals(a.getOptionalAxis("v"), b.getOptionalAxis("v"))
+
+        }.asImmutable()
     }
 
     long getUindexCount () {
@@ -115,7 +155,15 @@ class PointMap {
         ConcurrentHashMap.KeySetView keys = multiMap.keySet()
 
         List<Point> vEntries = keys.iterator().findAll { Point p -> p.v == vIdx}
-        vEntries.sort().asImmutable()
+        vEntries.sort(false){Point a, Point b ->
+            compareOptionals(a.getOptionalAxis("x"),b.getOptionalAxis("x")) ?:
+                    compareOptionals(a.getOptionalAxis("y"), b.getOptionalAxis("y")) ?:
+                            compareOptionals(a.getOptionalAxis("z"), b.getOptionalAxis("z")) ?:
+                                    compareOptionals(a.getOptionalAxis("t"), b.getOptionalAxis("t")) ?:
+                                            compareOptionals(a.getOptionalAxis("u"), b.getOptionalAxis("u")) ?:
+                                                    compareOptionals(a.getOptionalAxis("v"), b.getOptionalAxis("v"))
+
+        }.asImmutable()
     }
 
     long getVindexCount () {

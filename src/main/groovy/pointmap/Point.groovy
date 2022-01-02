@@ -23,8 +23,8 @@ class Point {
     }
 
     Point (List idx) {
-        assert "co-ordinate list cannot be null", idx
-        assert "must have non nullable x and y co-ordinates",  idx.size() > 2
+        assert idx, "co-ordinate list cannot be null"
+        assert idx.size() > 2, "must have non nullable x and y co-ordinates"
 
         x = Optional.of (idx?[0])
         y = Optional.of (idx?[1])
@@ -35,16 +35,20 @@ class Point {
 
     }
 
-    Object getOptionalAxis (String axis) {
-        switch (axis) {
-            case "x" -> x
-            case "y" -> y
-            case "z" -> z
-            case "t" -> t
-            case "u" -> u
-            case "v" -> v
-            default -> x
+    Optional getOptionalAxis (String axis) {
+        assert axis instanceof String
+
+        String lowercase = axis.toLowerCase()
+        Optional axisResult = switch (lowercase) {
+            case "x" -> this.@x
+            case "y" -> this.@y
+            case "z" -> this.@z
+            case "t" -> this.@t
+            case "u" -> this.@u
+            case "v" -> this.@v
+            default -> this.@x
         }
+        axisResult
     }
 
     Object getX () {
@@ -113,7 +117,7 @@ class Point {
         def compareX = x.orElse(null) <=> otherPoint.@x.orElse (null)
         def compareY = y.orElse(null) <=> otherPoint.@y.orElse (null)
 
-        if (compareX < 0) {
+        /*if (compareX < 0) {
             return -1
         } else if (compareX == 0 && compareY <= 0) {
             return -1
@@ -123,14 +127,14 @@ class Point {
             return 1
         } else if (compareX <=0 && compareY > 0) {
             return 1
-        }
+        }*/
 
         int cmp = x.orElse(null) <=> otherPoint.@x.orElse (null) ?:
-                y.orElse(null <=> otherPoint.@y.orElse (null)) ?:
-                        z.orElse(null <=> otherPoint.@z.orElse (null)) ?:
-                                t.orElse(null <=> otherPoint.@t.orElse (null)) ?:
-                                        u.orElse(null <=> otherPoint.@u.orElse (null)) ?:
-                                                v.orElse(null <=> otherPoint.@v.orElse (null))
+                y.orElse(null) <=> otherPoint.@y.orElse (null) ?:
+                        z.orElse(null) <=> otherPoint.@z.orElse (null) ?:
+                                t.orElse(null) <=> otherPoint.@t.orElse (null) ?:
+                                        u.orElse(null) <=> otherPoint.@u.orElse (null) ?:
+                                                v.orElse(null) <=> otherPoint.@v.orElse (null)
         cmp
 
     }
