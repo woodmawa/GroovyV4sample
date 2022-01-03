@@ -4,8 +4,9 @@ import groovy.transform.EqualsAndHashCode
 import groovy.transform.ToString
 
 @ToString
-@EqualsAndHashCode (includeFields = true)
+@EqualsAndHashCode (excludes =  ["name"])
 class Point {
+    private Optional<Object> name = Optional.empty()  //you can have a named point - but not part of its hashCode
     private Optional<Object> x = Optional.empty()  //1 dimension
     private Optional<Object> y = Optional.empty()  //2 dimension
     private Optional<Object> z = Optional.empty()  //3 dimension
@@ -36,26 +37,28 @@ class Point {
     }
 
     Optional getOptionalAxis (String axis) {
-        assert axis instanceof String
-
         String lowercase = axis.toLowerCase()
         Optional axisResult = switch (lowercase) {
-            case "x" -> this.@x
-            case "y" -> this.@y
-            case "z" -> this.@z
-            case "t" -> this.@t
-            case "u" -> this.@u
-            case "v" -> this.@v
-            default -> this.@x
+            case "x" -> this.optionalX
+            case "y" -> this.optionalY
+            case "z" -> this.optionalZ
+            case "t" -> this.optionalT
+            case "u" -> this.optionalU
+            case "v" -> this.optionalV
+            default -> this.optionalX
         }
         axisResult
+    }
+
+    Object getName() {
+        name.orElse("unknown")
     }
 
     Object getX () {
         x.orElse (null)
     }
 
-    Object getOptionalX () {
+    Optional getOptionalX () {
         x
     }
 
@@ -63,7 +66,7 @@ class Point {
         y.orElse (null)
     }
 
-    Object getOptionalY () {
+    Optional getOptionalY () {
         y
     }
 
@@ -71,7 +74,7 @@ class Point {
         z.orElse (null)
     }
 
-    Object getOptionalZ () {
+    Optional getOptionalZ () {
         z
     }
 
@@ -79,7 +82,7 @@ class Point {
         t.orElse (null)
     }
 
-    Object getOptionalT() {
+    Optional getOptionalT() {
         t
     }
 
@@ -87,7 +90,7 @@ class Point {
         u.orElse (null)
     }
 
-    Object getOptionalU () {
+    Optional getOptionalU () {
         u
     }
 
@@ -95,7 +98,7 @@ class Point {
         v.orElse (null)
     }
 
-    Object getOptionalV () {
+    Optional getOptionalV () {
         v
     }
 
@@ -104,37 +107,21 @@ class Point {
     boolean equals (Object other) {
         assert other instanceof Point, "other must be an instance of Point"
 
-        this.@x == other.@x &&
-        this.@y == other.@y &&
-        this.@z == other.@z &&
-        this.@t == other.@t &&
-        this.@u == other.@u &&
-        this.@v == other.@v
+        optionalX == other.optionalX &&
+        optionalY == other.optionalY &&
+        optionalZ == other.optionalZ &&
+        optionalT == other.optionalT &&
+        optionalU == other.optionalU &&
+        optionalV == other.optionalV
     }
 
     int compareTo (Point otherPoint) {
-
-        def compareX = x.orElse(null) <=> otherPoint.@x.orElse (null)
-        def compareY = y.orElse(null) <=> otherPoint.@y.orElse (null)
-
-        /*if (compareX < 0) {
-            return -1
-        } else if (compareX == 0 && compareY <= 0) {
-            return -1
-        } else if (compareX == 0 && compareY == 0) {
-            return 0
-        } else if (compareX >= 0 && compareY <= 0) {
-            return 1
-        } else if (compareX <=0 && compareY > 0) {
-            return 1
-        }*/
-
-        int cmp = x.orElse(null) <=> otherPoint.@x.orElse (null) ?:
-                y.orElse(null) <=> otherPoint.@y.orElse (null) ?:
-                        z.orElse(null) <=> otherPoint.@z.orElse (null) ?:
-                                t.orElse(null) <=> otherPoint.@t.orElse (null) ?:
-                                        u.orElse(null) <=> otherPoint.@u.orElse (null) ?:
-                                                v.orElse(null) <=> otherPoint.@v.orElse (null)
+        int cmp = optionalX.orElse(null) <=> otherPoint.optionalX.orElse (null) ?:
+                optionalY.orElse(null) <=> otherPoint.optionalY.orElse (null) ?:
+                        optionalZ.orElse(null) <=> otherPoint.optionalZ.orElse (null) ?:
+                                optionalT.orElse(null) <=> otherPoint.optionalT.orElse (null) ?:
+                                        optionalU.orElse(null) <=> otherPoint.optionalU.orElse (null) ?:
+                                               optionalV.orElse(null) <=> otherPoint.optionalV.orElse (null)
         cmp
 
     }
