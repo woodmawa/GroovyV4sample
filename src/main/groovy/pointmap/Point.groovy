@@ -61,10 +61,11 @@ class Point {
      * @param yield {Point p, Object value -> ...}  - a function that takes a Closure and returns the result
      * @return
      */
-    def accept (Object value, Closure yield) {
-        assert yield
+    def accept (Object value, Closure visitor) {
+        assert visitor
 
-        yield (this, value)
+        //invoke the visitor with this Point and value stored with the Point
+        visitor.call (this, value)
     }
 
     /**
