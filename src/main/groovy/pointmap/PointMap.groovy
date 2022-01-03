@@ -183,8 +183,8 @@ class PointMap {
         assert visitor
 
         //todo - need to think whats expected from this
-        Set<Point> pointSet = multiMap.entrySet()
-        List<ConcurrentHashMap.EntrySetView<Point>> points = pointSet.collect{it.getKey()}
+        List<Point> points = multiMap.keySet().asList()
+
         List<Point> sorted = points.sort(false){Point a, Point b ->
             compareOptionals(a.getOptionalAxis("x"),b.getOptionalAxis("x")) ?:
                     compareOptionals(a.getOptionalAxis("y"), b.getOptionalAxis("y")) ?:
