@@ -179,11 +179,20 @@ class PointMap {
      * @param visit {Point p -> ...}  - a function that takes a function and returns the result
      * @return
      */
-    def accept  (Closure visitor) {
+    def visit  (Closure visitor) {
         assert visitor
 
         //todo - need to think whats expected from this
-        multiMap.collect {Map.Entry<Point, Object> entry -> entry.getKey().accept (entry.getValue(),visitor)}.findAll{it}
+        multiMap.sort(false){Point a, Point b ->
+            compareOptionals(a.getOptionalAxis("x"),b.getOptionalAxis("x")) ?:
+                    compareOptionals(a.getOptionalAxis("y"), b.getOptionalAxis("y")) ?:
+                            compareOptionals(a.getOptionalAxis("z"), b.getOptionalAxis("z")) ?:
+                                    compareOptionals(a.getOptionalAxis("t"), b.getOptionalAxis("t")) ?:
+                                            compareOptionals(a.getOptionalAxis("u"), b.getOptionalAxis("u")) ?:
+                                                    compareOptionals(a.getOptionalAxis("v"), b.getOptionalAxis("v"))
+
+        }
+        .collect {Map.Entry<Point, Object> entry -> entry.getKey().accept (entry.getValue(),visitor)}.findAll{it}
 
     }
 }
