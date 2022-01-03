@@ -179,10 +179,11 @@ class PointMap {
      * @param visit {Point p -> ...}  - a function that takes a function and returns the result
      * @return
      */
-    def visitor  (Closure visit) {
-        assert visit
+    def visitor  (Closure visitor) {
+        assert visitor
 
-        multiMap.collect {Point point -> point.yield {visit }}.findAll{it}
+        //todo - need to think whats expected from this
+        multiMap.collect {Point point -> point.accept (visitor)}.findAll{it}
 
     }
 }
