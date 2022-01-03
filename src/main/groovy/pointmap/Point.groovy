@@ -4,9 +4,9 @@ import groovy.transform.EqualsAndHashCode
 import groovy.transform.ToString
 
 @ToString
-@EqualsAndHashCode (excludes =  ["name"])
+@EqualsAndHashCode (excludes =  "name")
 class Point {
-    private Optional<Object> name = Optional.empty()  //you can have a named point - but not part of its hashCode
+    Optional<String> name = Optional.empty()  //you can have a named point - but not part of its hashCode
     private Optional<Object> x = Optional.empty()  //1 dimension
     private Optional<Object> y = Optional.empty()  //2 dimension
     private Optional<Object> z = Optional.empty()  //3 dimension
@@ -50,8 +50,12 @@ class Point {
         axisResult
     }
 
-    Object getName() {
+    String getName() {
         name.orElse("unknown")
+    }
+
+    void setName (String pointName) {
+        name = Optional.of (pointName)
     }
 
     Object getX () {

@@ -84,4 +84,5 @@ class PointMapTest extends Specification {
          colCount == 2
          zIndexCount == 1
     }
+
 }

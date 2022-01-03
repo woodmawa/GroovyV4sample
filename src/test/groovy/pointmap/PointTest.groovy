@@ -107,4 +107,16 @@ class PointTest extends Specification {
         p2.compareTo(p3) == 1
         p1.compareTo(p3) == -1
     }
+
+
+    def "confirm named and unnamed point have same hashCode" () {
+        given:
+        Point p1 = new Point (0,0)
+        Point p1Named = new Point (0,0)
+        p1Named.name = "Will"
+
+        expect:
+        p1 == p1Named
+        p1.hashCode() == p1Named.hashCode() //naming a point doesnt change its hashCode
+    }
 }
