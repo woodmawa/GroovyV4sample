@@ -111,14 +111,15 @@ class Point {
     //equals on object expects Object - so dont create alternative
     @Override
     boolean equals (Object other) {
+        //equlity doesnt include name when doing the check, just the position 
         assert other instanceof Point, "other must be an instance of Point"
 
-        optionalX == other.optionalX &&
-        optionalY == other.optionalY &&
-        optionalZ == other.optionalZ &&
-        optionalT == other.optionalT &&
-        optionalU == other.optionalU &&
-        optionalV == other.optionalV
+        x == other.optionalX &&
+        y == other.optionalY &&
+        z == other.optionalZ &&
+        t == other.optionalT &&
+        u == other.optionalU &&
+        v == other.optionalV
     }
 
     int compareTo (Point otherPoint) {
