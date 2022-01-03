@@ -172,4 +172,17 @@ class PointMap {
         long count = keys.iterator().findAll { Point p -> p.@v != Optional.empty()}.groupBy {Point p -> p.@v}.size()
         count
     }
+
+    /**
+     * for visitor pattern normally invoked from PointMap iteration with a visitor closure
+     *
+     * @param visit {Point p -> ...}  - a function that takes a function and returns the result
+     * @return
+     */
+    def visitor  (Closure visit) {
+        assert visit
+
+        multiMap.collect {Point point -> point.yield {visit }}.findAll{it}
+
+    }
 }
