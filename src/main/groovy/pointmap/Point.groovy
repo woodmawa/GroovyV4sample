@@ -64,8 +64,11 @@ class Point {
     def accept (Object value, Closure visitor) {
         assert visitor
 
-        //invoke the visitor with this Point and value stored with the Point
-        visitor.call (this, value)
+        if (value == null)
+            return null
+        else
+            //invoke the visitor with this Point and value stored with the Point
+            visitor.call (this, value)
     }
 
     /**
