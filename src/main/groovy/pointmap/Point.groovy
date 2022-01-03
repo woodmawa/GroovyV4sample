@@ -58,7 +58,7 @@ class Point {
     /**
      * for visitor pattern normally invoked from PointMap iteration with a visitor closure
      *
-     * @param yield {Point p -> ...}  - a function that takes a Closure and returns the result
+     * @param yield {Point p, Object value -> ...}  - a function that takes a Closure and returns the result
      * @return
      */
     def accept (Object value, Closure yield) {
