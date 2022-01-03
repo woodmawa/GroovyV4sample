@@ -85,4 +85,24 @@ class PointMapTest extends Specification {
          zIndexCount == 1
     }
 
+    def "test visitor on PointMap " () {
+        given:
+        Point p1 = new Point(0, 0)
+        Point p2 = new Point(0, 1)
+        Point p3 = new Point(1, 0)
+        Point p4 = new Point(1, 1)
+
+        PointMap map = new PointMap()
+
+        map.put (p1,"a")
+        map.put (p2,"b")
+        map.put (p3,"c")
+        map.put (p4,"d")
+
+        Closure visitor = {point, value -> value} //every entry in pointmap will be called with this
+        def result = map.visit (visitor)
+
+        expect:
+        result == ["a","b","c","d"]
+    }
 }

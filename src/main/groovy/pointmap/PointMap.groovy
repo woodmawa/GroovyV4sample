@@ -183,7 +183,9 @@ class PointMap {
         assert visitor
 
         //todo - need to think whats expected from this
-        multiMap.sort(false){Point a, Point b ->
+        Set<Point> pointSet = multiMap.entrySet()
+        List<Point> points = pointSet.collect{it.getKey()}
+        List<Point> sorted = points.sort(false){Point a, Point b ->
             compareOptionals(a.getOptionalAxis("x"),b.getOptionalAxis("x")) ?:
                     compareOptionals(a.getOptionalAxis("y"), b.getOptionalAxis("y")) ?:
                             compareOptionals(a.getOptionalAxis("z"), b.getOptionalAxis("z")) ?:
@@ -192,7 +194,13 @@ class PointMap {
                                                     compareOptionals(a.getOptionalAxis("v"), b.getOptionalAxis("v"))
 
         }
-        .collect {Map.Entry<Point, Object> entry -> entry.getKey().accept (entry.getValue(),visitor)}.findAll{it}
+        // cant use collect closure here as context would be the list, and then couldnt access the multimap -
+        // use normal iteration instead
+        def visitResults = []
+        for (point in sorted) {
+            visitResults << point.accept(multiMap[point], visitor)
+        }
 
+        visitResults
     }
 }

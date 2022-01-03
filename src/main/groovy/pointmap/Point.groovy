@@ -11,7 +11,6 @@ import groovy.transform.ToString
  */
 @ToString
 @EqualsAndHashCode (excludes =  "name")
-@MapConstructor
 class Point {
     Optional<String> name = Optional.empty()  //you can have a named point - but not part of its hashCode
     private Optional<Object> x = Optional.empty()  //1 dimension
