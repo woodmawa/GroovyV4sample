@@ -131,7 +131,7 @@ class PointMap  {
         count
     }
 
-    List<Point> getColumnEntryList (colNumber) {
+    List<Point> getColumnEntryList (final colNumber) {
         ConcurrentHashMap.KeySetView keys = multiMap.keySet()
 
         List<Point> colEntries = keys.iterator().findAll { Point p -> p.y == colNumber}
@@ -145,7 +145,7 @@ class PointMap  {
         count
     }
 
-    List<Point> getZindexEntryList (zIdx) {
+    List<Point> getZindexEntryList (final zIdx) {
         ConcurrentHashMap.KeySetView keys = multiMap.keySet()
 
         List<Point> zEntries = keys.iterator().findAll { Point p -> p.z == zIdx}
@@ -159,7 +159,7 @@ class PointMap  {
         count
     }
 
-    List<Point> getTindexEntryList (tIdx) {
+    List<Point> getTindexEntryList (final tIdx) {
         ConcurrentHashMap.KeySetView keys = multiMap.keySet()
 
         List<Point> tEntries = keys.iterator().findAll { Point p -> p.t == tIdx}
@@ -173,7 +173,7 @@ class PointMap  {
         count
     }
 
-    List<Point> getUindexEntryList (uIdx) {
+    List<Point> getUindexEntryList (final uIdx) {
         ConcurrentHashMap.KeySetView keys = multiMap.keySet()
 
         List<Point> uEntries = keys.iterator().findAll { Point p -> p.u == uIdx}
@@ -187,7 +187,7 @@ class PointMap  {
         count
     }
 
-    List<Point> getVindexEntryList (vIdx) {
+    List<Point> getVindexEntryList (final vIdx) {
         ConcurrentHashMap.KeySetView keys = multiMap.keySet()
 
         List<Point> vEntries = keys.iterator().findAll { Point p -> p.v == vIdx}
