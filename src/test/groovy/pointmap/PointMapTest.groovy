@@ -137,7 +137,7 @@ class PointMapTest extends Specification {
         map.put (p4,[0,1])
 
         expect:
-        map.getSortedKeySet() == [p3,p4,p2,p1 ]
+        map.getNaturalSortedKeySet() == [p3,p4,p2,p1 ]
 
     }
 }

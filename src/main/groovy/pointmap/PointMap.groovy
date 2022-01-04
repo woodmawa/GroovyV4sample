@@ -168,10 +168,15 @@ class PointMap {
         count
     }
 
-    List<Point> getSortedKeySet() {
+    List<Point> getNaturalSortedKeySet() {
         naturalSort(multiMap.entrySet().collect{it.key})
     }
 
+    List<Point> getNaturalSortedKeySet(Closure filter) {
+        List filteredKeys = multiMap.collect (filter)
+
+        naturalSort(filteredKeys)
+    }
 
     /**
      * for visitor pattern normally invoked from PointMap iteration with a visitor closure
