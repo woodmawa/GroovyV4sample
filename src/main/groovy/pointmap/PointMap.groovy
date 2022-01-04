@@ -174,6 +174,7 @@ class PointMap {
 
     List<Point> getNaturalSortedKeySet (Closure filter) {
         assert filter
+        assert filter.maximumNumberOfParameters > 0, "filter closure must declare one or two arguments to be called with"
 
         List filteredKeys
         //depending on the parameter types
