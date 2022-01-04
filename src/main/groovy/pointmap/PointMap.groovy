@@ -172,8 +172,10 @@ class PointMap {
         naturalSort(multiMap.entrySet().collect{it.key})
     }
 
-    List<Point> getNaturalSortedKeySet(Closure filter) {
-        List filteredKeys = multiMap.collect (filter)
+    List<Point> getNaturalSortedKeySet (Closure filter) {
+        assert filter
+
+        List filteredKeys = (multiMap.findAll{filter(it.key)}.collect{it.key}) ?:[]
 
         naturalSort(filteredKeys)
     }
