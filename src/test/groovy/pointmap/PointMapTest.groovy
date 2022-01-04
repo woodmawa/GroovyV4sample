@@ -121,4 +121,23 @@ class PointMapTest extends Specification {
 
 
     }
+
+    def "verify natural sorting of points" () {
+        given:
+        Point p1 = new Point(1, 1)
+        Point p2 = new Point(1, 0)
+        Point p3 = new Point(0, 0)
+        Point p4 = new Point(0, 1)
+
+        PointMap map = new PointMap()
+
+        map.put (p1,[1,1])
+        map.put (p2,[1,0])
+        map.put (p3,[0,0])
+        map.put (p4,[0,1])
+
+        expect:
+        map.getSortedKeySet() == [p3,p4,p2,p1 ]
+
+    }
 }

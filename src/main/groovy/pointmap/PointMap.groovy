@@ -72,7 +72,7 @@ class PointMap {
      * @param list of points
      * @return naturally sorted list of points
      */
-    private naturalSort (List<Point> points) {
+    private List naturalSort (List<Point> points) {
         points.sort(false){Point a, Point b ->
             compareOptionals(a.getOptionalAxis("x"),b.getOptionalAxis("x")) ?:
                     compareOptionals(a.getOptionalAxis("y"), b.getOptionalAxis("y")) ?:
@@ -167,6 +167,11 @@ class PointMap {
         long count = keys.iterator().findAll { Point p -> p.@v != Optional.empty()}.groupBy {Point p -> p.@v}.size()
         count
     }
+
+    List<Point> getSortedKeySet() {
+        naturalSort(multiMap.entrySet().collect{it.key})
+    }
+
 
     /**
      * for visitor pattern normally invoked from PointMap iteration with a visitor closure
