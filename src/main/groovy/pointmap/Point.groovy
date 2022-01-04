@@ -21,7 +21,7 @@ import groovy.transform.ToString
  * Points provide an accept method which takes a value instance, and a closure - part of visitor pattern starting from a PointMap.  The closure is invoked
  * is invoked with This (point), and the value.  PointMap will collect the returns of all visits
  *
- * point dimensions can be any object, but expectation is that they support Comparable interface (implement compareTo())
+ * point dimensions can be any object, but expectation is that they support the Comparable interface (implement compareTo())
  *
  * Copyright [2022] [Will Woodman]
  *

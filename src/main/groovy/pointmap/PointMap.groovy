@@ -225,7 +225,7 @@ class PointMap {
         // use normal iteration instead
         def visitResults = []
         for (point in sorted) {
-            visitResults << point.accept(multiMap[point], visitor)
+            visitResults << point.accept( (/*value*/ multiMap[point]), visitor)
         }
 
         visitResults

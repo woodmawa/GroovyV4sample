@@ -16,6 +16,7 @@ class PointTest extends Specification {
         Optional.of ("will") == Optional.of ("will")
     }
 
+    //exploration test to try compare by using Comparator static method generation of a comparator
     def "compare two optionals " () {
         given:
         Optional one = Optional.of(1)
@@ -135,4 +136,5 @@ class PointTest extends Specification {
         expect:
         p1.asNullTrimmedList() == [0,0,null,0]  //returns 6D point as list
     }
+
 }
