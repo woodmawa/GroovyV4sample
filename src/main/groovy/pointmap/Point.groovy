@@ -120,7 +120,7 @@ class Point {
     }
 
     String getName() {
-        name.orElse("unknown")
+        name.orElse("unNamed")
     }
 
     void setName (String pointName) {
@@ -235,6 +235,6 @@ class Point {
     }
 
     String toString() {
-        "Point ($x, $y, $z, $t, $u, $v)"
+        "Point ([${getName()}]: $x, $y, $z, $t, $u, $v)"
     }
 }

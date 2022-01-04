@@ -90,7 +90,7 @@ class PointTest extends Specification {
 
     def "testToString" () {
         expect:
-        new Point (0,0).toString() == "Point (Optional[0], Optional[0], Optional.empty, Optional.empty, Optional.empty, Optional.empty)"
+        new Point (0,0).toString() == "Point ([unNamed]: Optional[0], Optional[0], Optional.empty, Optional.empty, Optional.empty, Optional.empty)"
     }
 
     def "test compare Points" () {
@@ -128,7 +128,7 @@ class PointTest extends Specification {
         p1.asList() == [0,0,null,null,null,null]  //returns 6D point as list
     }
 
-    def "check asTrimmedList returns List with trailing nulls removed returns expected results" () {
+    def "check asNullTrimmedList returns List with trailing nulls removed returns expected results" () {
         given:
         Point p1 = new Point (0,0, null, 0)
 
