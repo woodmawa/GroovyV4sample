@@ -1,5 +1,7 @@
 package pointmap
 
+import org.jetbrains.annotations.NotNull
+
 import java.util.concurrent.ConcurrentHashMap
 import static java.util.Comparator.comparing
 
@@ -32,7 +34,7 @@ import static java.util.Comparator.comparing
 
 class PointMap  {
     @Delegate
-    private ConcurrentHashMap<Point, Object> multiMap = new ConcurrentHashMap()
+    private ConcurrentHashMap multiMap = new ConcurrentHashMap()
 
     /**
      * optional doesnt implement comparable - local closure to do the job
@@ -76,6 +78,7 @@ class PointMap  {
         final Point point = new Point (positionArgs)
         put (point, value)
     }
+
 
     def get (final Point point) {
         def value  = multiMap.get(point)
@@ -245,4 +248,6 @@ class PointMap  {
 
         visitResults
     }
+
+
 }
