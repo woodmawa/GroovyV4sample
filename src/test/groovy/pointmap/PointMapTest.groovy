@@ -138,7 +138,7 @@ class PointMapTest extends Specification {
 
         expect:
         map.getNaturalSortedKeySet() == [p3,p4,p2,p1 ]
-        map.getNaturalSortedKeySet{it == p1} == [p1]
+        map.getNaturalSortedKeySet{it.key == p1} == [p1]  //apply filter and process the result
 
     }
 }
