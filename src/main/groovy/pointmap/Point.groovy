@@ -15,8 +15,8 @@ import groovy.transform.ToString
  *
  * Points are nearly expected to be Immutable as they form the key in a PointMap
  *
- * PointMap allows you to retrieve any object value associated with this point.  The value can be a closure, value  value whos superclass
- * is Object , and null
+ * PointMap allows you to retrieve any object value associated with this point as a key.  The value can be a closure, a value whos superclass
+ * is Object , or null
  *
  * Points provide an accept method which takes a value instance, and a closure - part of visitor pattern starting from a PointMap.  The closure is invoked
  * is invoked with This (point), and the value.  PointMap will collect the returns of all visits

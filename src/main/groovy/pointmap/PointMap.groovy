@@ -54,16 +54,46 @@ class PointMap {
     }
 
     def put (final Point point, def value ) {
-        multiMap.put (point, value)
+        multiMap.put (point, value ?: Optional.empty())
     }
 
-    def put (x,y,z, def value) {
+    def put (final x, final y, def value) {
+        final Point point = new Point (x,y)
+        put (point, value)
+    }
+
+    def put (final x,final y, final z, def value) {
         final Point point = new Point (x,y,z)
+        put (point, value)
+    }
+
+    def put (final x, final y, final z,final t, final u, final v, def value) {
+        final Point point = new Point (x,y,z,t,u,v)
+        put (point, value)
+    }
+
+    def put (final List positionArgs, def value) {
+        final Point point = new Point (positionArgs)
         put (point, value)
     }
 
     def get (final Point point) {
         def value  = multiMap.get(point)
+        value
+    }
+
+    def get (final x,final y) {
+        def value  = multiMap.get(new Point (x,y))
+        value
+    }
+
+    def get (final x,final y, final z) {
+        def value  = multiMap.get(new Point (x,y,z))
+        value
+    }
+
+    def get (final List positionArgs) {
+        def value  = multiMap.get(new Point (positionArgs))
         value
     }
 
