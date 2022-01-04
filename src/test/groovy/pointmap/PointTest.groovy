@@ -119,4 +119,20 @@ class PointTest extends Specification {
         p1 == p1Named
         p1.hashCode() == p1Named.hashCode() //naming a point doesnt change its hashCode
     }
+
+    def "check asList returns expected results" () {
+        given:
+        Point p1 = new Point (0,0)
+
+        expect:
+        p1.asList() == [0,0,null,null,null,null]  //returns 6D point as list
+    }
+
+    def "check asTrimmedList returns List with trailing nulls removed returns expected results" () {
+        given:
+        Point p1 = new Point (0,0, null, 0)
+
+        expect:
+        p1.asNullTrimmedList() == [0,0,null,0]  //returns 6D point as list
+    }
 }

@@ -4,21 +4,51 @@ import groovy.transform.EqualsAndHashCode
 import groovy.transform.MapConstructor
 import groovy.transform.ToString
 
-/**
+/***
  *
- * 2021
- * @Author Will Woodman
- */
+ * Point represents a point in 6D space.  It can be used as a key in a PointMap to store a value with the space
+ *
+ * Points can be optionally named.  the name does not form part of the hashCode for the point
+ *
+ * all the variables are stored as optionals internally.  but just requesting one of the dimensions can unpack the Optional and return a null
+ * There are methods to directly access the optional dimensions as stored
+ *
+ * Points are nearly expected to be Immutable as they form the key in a PointMap
+ *
+ * PointMap allows you to retrieve any object value associated with this point.  The value can be a closure, value  value whos superclass
+ * is Object , and null
+ *
+ * Points provide an accept method which takes a value instance, and a closure - part of visitor pattern starting from a PointMap.  The closure is invoked
+ * is invoked with This (point), and the value.  PointMap will collect the returns of all visits
+ *
+ * point dimensions can be any object, but expectation is that they support Comparable interface (implement compareTo())
+ *
+ * Copyright [2022] [Will Woodman]
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ ***/
+
 @ToString
 @EqualsAndHashCode (excludes =  "name")
 class Point {
     Optional<String> name = Optional.empty()  //you can have a named point - but not part of its hashCode
-    private Optional<Object> x = Optional.empty()  //1 dimension
-    private Optional<Object> y = Optional.empty()  //2 dimension
-    private Optional<Object> z = Optional.empty()  //3 dimension
-    private Optional<Object> t = Optional.empty()  //4 dimension
-    private Optional<Object> u = Optional.empty()  //5 dimension
-    private Optional<Object> v = Optional.empty()  //6 dimension
+    private final Optional<Object> x = Optional.empty()  //1 dimension
+    private final Optional<Object> y = Optional.empty()  //2 dimension
+    private final Optional<Object> z = Optional.empty()  //3 dimension
+    private final Optional<Object> t = Optional.empty()  //4 dimension
+    private final Optional<Object> u = Optional.empty()  //5 dimension
+    private final Optional<Object> v = Optional.empty()  //6 dimension
 
     Point (x, y, z = null, t = null, u =null, v = null) {
         this.x = Optional.ofNullable (x)
@@ -60,7 +90,7 @@ class Point {
      * @param yield {Point p, Object value -> ...}  - a function that takes a Closure and returns the result
      * @return
      */
-    def accept (Object value, Closure visitor) {
+    def accept (final Object value, final Closure visitor) {
         assert visitor
 
         if (value == null)
@@ -173,6 +203,35 @@ class Point {
                                                optionalV.orElse(null) <=> otherPoint.optionalV.orElse (null)
         cmp
 
+    }
+
+    List asList() {
+        [getX(), getY(), getZ(), getT(), getU(), getV()].asImmutable()
+    }
+
+    List asNullTrimmedList() {
+        List l = [getX(), getY(), getZ(), getT(), getU(), getV()]
+
+        List reversed = []
+        boolean trailingNulls = true
+        for (i in -1..-6) {
+            if (trailingNulls && l[i] == null ) {
+                continue
+            } else if (trailingNulls) {
+                trailingNulls = false
+            }
+            reversed << l[i]
+        }
+        List trimmedList = reversed.reverse()
+        trimmedList.asImmutable()
+    }
+
+    List asListOfOptionals() {
+        [getOptionalX(), getOptionalY(), getOptionalZ(), getOptionalT(), getOptionalU(), getOptionalV()].asImmutable()
+    }
+
+    Map asMap () {
+        [x:getX(), y:getY(), z:getZ(), t:getT(), u:getU(), v:getV()].asImmutable()
     }
 
     String toString() {
