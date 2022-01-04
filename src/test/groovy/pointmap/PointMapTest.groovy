@@ -105,4 +105,20 @@ class PointMapTest extends Specification {
         expect:
         result == ["a","b","c","d"]
     }
+
+    def "adding multiple values via the same key should overwrite  "() {
+        given :
+        Point p1 = new Point(0, 0)
+
+        PointMap map = new PointMap()
+
+        map.put (p1,"a")
+        map.put (p1,"b")
+
+        expect:
+        map.size() == 1
+        map.get (p1) == "b"
+
+
+    }
 }
