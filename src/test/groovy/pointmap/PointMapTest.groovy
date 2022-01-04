@@ -38,6 +38,8 @@ class PointMapTest extends Specification {
         colOne.size() == 3
         colOne[0] == p2
         colOne[1] == p4
+        colOne == [p2,p4,p5]
+
     }
 
     def "save entry and get it back from PointMap" () {
