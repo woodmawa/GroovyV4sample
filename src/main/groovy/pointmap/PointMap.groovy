@@ -67,11 +67,13 @@ class PointMap {
         value
     }
 
-    List<Point> getRowEntryList (final def rowNumber) {
-        ConcurrentHashMap.KeySetView keys = multiMap.keySet()
-
-        List<Point> rowEntries = keys.iterator().findAll { Point p -> p.x == rowNumber}
-        rowEntries.sort(false){Point a, Point b ->
+    /**
+     * do a natural sort on list of points with x axis as most significant, then y axis ....
+     * @param list of points
+     * @return naturally sorted list of points
+     */
+    private naturalSort (List<Point> points) {
+        points.sort(false){Point a, Point b ->
             compareOptionals(a.getOptionalAxis("x"),b.getOptionalAxis("x")) ?:
                     compareOptionals(a.getOptionalAxis("y"), b.getOptionalAxis("y")) ?:
                             compareOptionals(a.getOptionalAxis("z"), b.getOptionalAxis("z")) ?:
@@ -79,7 +81,14 @@ class PointMap {
                                             compareOptionals(a.getOptionalAxis("u"), b.getOptionalAxis("u")) ?:
                                                     compareOptionals(a.getOptionalAxis("v"), b.getOptionalAxis("v"))
 
-        }.asImmutable()
+        }
+    }
+
+    List<Point> getRowEntryList (final def rowNumber) {
+        ConcurrentHashMap.KeySetView keys = multiMap.keySet()
+
+        List<Point> rowEntries = keys.iterator().findAll { Point p -> p.x == rowNumber}
+        naturalSort (rowEntries).asImmutable()
     }
 
     long getRowCount () {
@@ -93,16 +102,7 @@ class PointMap {
         ConcurrentHashMap.KeySetView keys = multiMap.keySet()
 
         List<Point> colEntries = keys.iterator().findAll { Point p -> p.y == colNumber}
-        List<Point> sorted = colEntries.sort(false){Point a, Point b ->
-             compareOptionals(a.getOptionalAxis("x"),b.getOptionalAxis("x")) ?:
-                    compareOptionals(a.getOptionalAxis("y"), b.getOptionalAxis("y")) ?:
-                            compareOptionals(a.getOptionalAxis("z"), b.getOptionalAxis("z")) ?:
-                                    compareOptionals(a.getOptionalAxis("t"), b.getOptionalAxis("t")) ?:
-                                            compareOptionals(a.getOptionalAxis("u"), b.getOptionalAxis("u")) ?:
-                                                    compareOptionals(a.getOptionalAxis("v"), b.getOptionalAxis("v"))
-
-        }.asImmutable()
-        sorted
+        naturalSort (colEntries).asImmutable()
     }
 
     long getColumnCount () {
@@ -116,15 +116,7 @@ class PointMap {
         ConcurrentHashMap.KeySetView keys = multiMap.keySet()
 
         List<Point> zEntries = keys.iterator().findAll { Point p -> p.z == zIdx}
-        zEntries.sort(false){Point a, Point b ->
-            compareOptionals(a.getOptionalAxis("x"),b.getOptionalAxis("x")) ?:
-                    compareOptionals(a.getOptionalAxis("y"), b.getOptionalAxis("y")) ?:
-                            compareOptionals(a.getOptionalAxis("z"), b.getOptionalAxis("z")) ?:
-                                    compareOptionals(a.getOptionalAxis("t"), b.getOptionalAxis("t")) ?:
-                                            compareOptionals(a.getOptionalAxis("u"), b.getOptionalAxis("u")) ?:
-                                                    compareOptionals(a.getOptionalAxis("v"), b.getOptionalAxis("v"))
-
-        }.asImmutable()
+        naturalSort (zEntries).asImmutable()
     }
 
     long getZindexCount () {
@@ -138,15 +130,7 @@ class PointMap {
         ConcurrentHashMap.KeySetView keys = multiMap.keySet()
 
         List<Point> tEntries = keys.iterator().findAll { Point p -> p.t == tIdx}
-        tEntries.sort(false){Point a, Point b ->
-            compareOptionals(a.getOptionalAxis("x"),b.getOptionalAxis("x")) ?:
-                    compareOptionals(a.getOptionalAxis("y"), b.getOptionalAxis("y")) ?:
-                            compareOptionals(a.getOptionalAxis("z"), b.getOptionalAxis("z")) ?:
-                                    compareOptionals(a.getOptionalAxis("t"), b.getOptionalAxis("t")) ?:
-                                            compareOptionals(a.getOptionalAxis("u"), b.getOptionalAxis("u")) ?:
-                                                    compareOptionals(a.getOptionalAxis("v"), b.getOptionalAxis("v"))
-
-        }.asImmutable()
+        naturalSort (tEntries).asImmutable()
     }
 
     long getTindexCount () {
@@ -160,15 +144,7 @@ class PointMap {
         ConcurrentHashMap.KeySetView keys = multiMap.keySet()
 
         List<Point> uEntries = keys.iterator().findAll { Point p -> p.u == uIdx}
-        uEntries.sort(false){Point a, Point b ->
-            compareOptionals(a.getOptionalAxis("x"),b.getOptionalAxis("x")) ?:
-                    compareOptionals(a.getOptionalAxis("y"), b.getOptionalAxis("y")) ?:
-                            compareOptionals(a.getOptionalAxis("z"), b.getOptionalAxis("z")) ?:
-                                    compareOptionals(a.getOptionalAxis("t"), b.getOptionalAxis("t")) ?:
-                                            compareOptionals(a.getOptionalAxis("u"), b.getOptionalAxis("u")) ?:
-                                                    compareOptionals(a.getOptionalAxis("v"), b.getOptionalAxis("v"))
-
-        }.asImmutable()
+        naturalSort (uEntries).asImmutable()
     }
 
     long getUindexCount () {
@@ -182,15 +158,7 @@ class PointMap {
         ConcurrentHashMap.KeySetView keys = multiMap.keySet()
 
         List<Point> vEntries = keys.iterator().findAll { Point p -> p.v == vIdx}
-        vEntries.sort(false){Point a, Point b ->
-            compareOptionals(a.getOptionalAxis("x"),b.getOptionalAxis("x")) ?:
-                    compareOptionals(a.getOptionalAxis("y"), b.getOptionalAxis("y")) ?:
-                            compareOptionals(a.getOptionalAxis("z"), b.getOptionalAxis("z")) ?:
-                                    compareOptionals(a.getOptionalAxis("t"), b.getOptionalAxis("t")) ?:
-                                            compareOptionals(a.getOptionalAxis("u"), b.getOptionalAxis("u")) ?:
-                                                    compareOptionals(a.getOptionalAxis("v"), b.getOptionalAxis("v"))
-
-        }.asImmutable()
+        naturalSort (vEntries).asImmutable()
     }
 
     long getVindexCount () {
@@ -212,15 +180,7 @@ class PointMap {
         //todo - need to think whats expected from this
         List<Point> points = multiMap.keySet().asList()
 
-        List<Point> sorted = points.sort(false){Point a, Point b ->
-            compareOptionals(a.getOptionalAxis("x"),b.getOptionalAxis("x")) ?:
-                    compareOptionals(a.getOptionalAxis("y"), b.getOptionalAxis("y")) ?:
-                            compareOptionals(a.getOptionalAxis("z"), b.getOptionalAxis("z")) ?:
-                                    compareOptionals(a.getOptionalAxis("t"), b.getOptionalAxis("t")) ?:
-                                            compareOptionals(a.getOptionalAxis("u"), b.getOptionalAxis("u")) ?:
-                                                    compareOptionals(a.getOptionalAxis("v"), b.getOptionalAxis("v"))
-
-        }
+        List<Point> sorted = naturalSort (points)
         // cant use collect closure here as context would be the list, and then couldnt access the multimap -
         // use normal iteration instead
         def visitResults = []
