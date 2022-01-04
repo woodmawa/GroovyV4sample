@@ -175,7 +175,19 @@ class PointMap {
     List<Point> getNaturalSortedKeySet (Closure filter) {
         assert filter
 
-        List filteredKeys = (multiMap.findAll{filter(it)}.collect{it.key}) ?:[]
+        List filteredKeys
+        //depending on the parameter types
+        def closureParamTypes = filter.parameterTypes[0]
+        if (filter.maximumNumberOfParameters == 1) {
+            if (closureParamTypes == Map.Entry)
+                filteredKeys = (multiMap.findAll { filter(it) }.collect { it.key }) ?: []
+            else if (closureParamTypes instanceof Point)
+                filteredKeys = (multiMap.findAll { filter(it.key) }.collect { it.key }) ?: []
+            else if (closureParamTypes instanceof Object)
+                filteredKeys = (multiMap.findAll { filter(it.key) }.collect { it.key }) ?: []
+        } else if (filter.maximumNumberOfParameters == 2) {
+            filteredKeys = (multiMap.findAll { filter(it.key, it.value) }.collect { it.key }) ?: []
+        }
 
         naturalSort(filteredKeys)
     }

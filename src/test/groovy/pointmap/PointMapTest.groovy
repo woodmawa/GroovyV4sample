@@ -138,7 +138,9 @@ class PointMapTest extends Specification {
 
         expect:
         map.getNaturalSortedKeySet() == [p3,p4,p2,p1 ]
-        map.getNaturalSortedKeySet{it.key == p1} == [p1]  //apply filter and process the result
-
+        //you can filter the key set with single arg closure or two arg closure
+        map.getNaturalSortedKeySet{Map.Entry entry -> entry.key == p1} == [p1]  //apply filter and process the result
+        map.getNaturalSortedKeySet{Point point -> point == p1} == [p1]
+        map.getNaturalSortedKeySet{point, value -> point == p1} == [p1]
     }
 }
