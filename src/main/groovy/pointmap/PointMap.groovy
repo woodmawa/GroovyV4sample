@@ -30,7 +30,7 @@ import static java.util.Comparator.comparing
  *
  ***/
 
-class PointMap {
+class PointMap  {
     @Delegate
     private ConcurrentHashMap<Point, Object> multiMap = new ConcurrentHashMap()
 

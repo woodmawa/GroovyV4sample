@@ -41,7 +41,7 @@ import groovy.transform.ToString
 
 @ToString
 @EqualsAndHashCode (excludes =  "name")
-class Point {
+class Point implements Comparable {
     Optional<String> name = Optional.empty()  //you can have a named point - but not part of its hashCode
     private final Optional<Object> x = Optional.empty()  //1 dimension
     private final Optional<Object> y = Optional.empty()  //2 dimension
@@ -194,7 +194,8 @@ class Point {
      * @param otherPoint to compare to this point
      * @return -1 (this is less than), 0 (equal), 1 (this is greater than)
      */
-    int compareTo (Point otherPoint) {
+    int compareTo (Object other) {
+        Point otherPoint = other
         int cmp = optionalX.orElse(null) <=> otherPoint.optionalX.orElse (null) ?:
                 optionalY.orElse(null) <=> otherPoint.optionalY.orElse (null) ?:
                         optionalZ.orElse(null) <=> otherPoint.optionalZ.orElse (null) ?:
