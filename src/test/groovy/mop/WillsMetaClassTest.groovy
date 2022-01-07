@@ -162,4 +162,35 @@ class WillsMetaClassTest extends Specification {
         countOfMetaMethodsAfter == countOfMetaMethods
 
     }
+
+    def "def test of metaClass.static" () {
+        given:
+
+        when:
+        sample.setMetaClass(wmc)   //set new metaclass
+
+        assert sample.metaClass == wmc
+
+        def stat =  sample.metaClass.'static'
+
+        def beforePropsSize = stat.properties.size ()
+        def beforeStaticPropsSize = stat.methods.size ()
+
+        stat.newStatProp = 10
+        stat.newStatMethod = {"new static method"}
+
+        def afterPropsSize = stat.properties.size ()
+        def afterStaticPropsSize = stat.methods.size ()
+
+        then:
+
+        //todo : need to clear out statics as they persist across tests and buggers the counts
+        stat != null
+        stat.getClass() == WillsMetaClass2.WillsExpandoMetaProperty
+        beforePropsSize == 0
+        beforeStaticPropsSize == 0
+        afterPropsSize == 1
+        afterStaticPropsSize == 2 //gettter and setter
+
+    }
 }

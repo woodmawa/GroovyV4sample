@@ -36,7 +36,6 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -648,15 +647,21 @@ public class WillsMetaClass2 extends MetaClassImpl implements GroovyObject {
             this.propertyName = property;
 
             //todo: modified logic here
-            MetaProperty prop = expandoProperties.get(property);
-            if (prop != null) {
-                var result = prop.getProperty(this);
-                if (result != null)
-                    return result;
-                else
+            if (property.equals ("properties"))
+                return this.getProperties();
+            else if (property.equals ("methods"))
+                return this.getMethods();
+            else {
+                MetaProperty prop = expandoProperties.get(property);
+                if (prop != null) {
+                    var result = prop.getProperty(this);
+                    if (result != null)
+                        return result;
+                    else
+                        return this;
+                } else
                     return this;
-            } else
-                return this;
+            }
         }
         /* (non-Javadoc)
          * @see groovy.lang.GroovyObjectSupport#setProperty(java.lang.String, java.lang.Object)
@@ -676,6 +681,17 @@ public class WillsMetaClass2 extends MetaClassImpl implements GroovyObject {
         /* get static properties only */
         public List<MetaProperty> getProperties() {
             List<MetaProperty> props = expandoProperties.entrySet()
+                    .stream()
+                    .filter(entry ->  Modifier.isStatic(entry.getValue().getModifiers()) )
+                    .map (entry -> entry.getValue())
+                    .collect(Collectors.toList());
+            return props;
+        }
+
+        /* get static methods only */
+        public List<Object> getMethods() {
+            Set<Map.Entry<MethodKey, MetaMethod>> set = expandoMethods.entrySet();
+            List<Object> props = set
                     .stream()
                     .filter(entry ->  Modifier.isStatic(entry.getValue().getModifiers()) )
                     .map (entry -> entry.getValue())
@@ -1334,7 +1350,9 @@ public class WillsMetaClass2 extends MetaClassImpl implements GroovyObject {
             return this;
         else if (name.equals("staticProperties"))  //experience as you have with properties
             return getStaticProperties();
-         else if (expandoProperties.containsKey(name)){
+        else if (name.equals("static"))
+            return new WillsExpandoMetaProperty(name, true);
+        else if (expandoProperties.containsKey(name)){
             //ist in expando properties return from this cache
             MetaProperty mp = expandoProperties.get(name);
             return mp.getProperty(object);
