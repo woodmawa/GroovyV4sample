@@ -20,7 +20,7 @@ String spockVersion = "2.0-groovy-3.0"
 dependencies {
     //implementation 'org.apache.groovy:groovy:4.0.0-beta-2'
     implementation group: "org.apache.groovy", name: 'groovy', version: "${groovyVersion}"
-    implementation 'org.jetbrains:annotations:20.1.0'
+    //implementation 'org.jetbrains:annotations:20.1.0'
     //implementation group: 'org.apache.groovy', name: 'groovy-all', version: '4.0.0-beta-2', ext: 'pom'
 
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.1'
@@ -29,12 +29,16 @@ dependencies {
     testImplementation("org.spockframework:spock-core:${spockVersion}") {
         exclude group: 'org.codehaus.groovy'    //to do not have conflicting Groovy versions - Groovy 4 changed groupId from "org.codehaus.groovy" to "org.apache.groovy"
     }
+
     testImplementation "org.apache.groovy:groovy:${groovyVersion}"
     testImplementation "org.apache.groovy:groovy-test:${groovyVersion}"
 
     //hopefully with security fixes 2021
-    implementation group: 'ch.qos.logback', name: 'logback-core', version: '1.3.0-alpha12'
-    implementation group: 'org.slf4j', name: 'slf4j-api', version: '2.0.0-alpha5'
+    //implementation group: 'ch.qos.logback', name: 'logback-classic', version: '1.3.0-alpha12'
+    //implementation group: 'org.slf4j', name: 'slf4j-api', version: '2.0.0-alpha5'
+
+    //testImplementation group: 'ch.qos.logback', name: 'logback-classic', version: '1.3.0-alpha12'
+    //testImplementation group: 'org.slf4j', name: 'slf4j-api', version: '2.0.0-alpha5'
 
 }
 

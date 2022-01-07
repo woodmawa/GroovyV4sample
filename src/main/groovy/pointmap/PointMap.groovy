@@ -1,6 +1,5 @@
 package pointmap
 
-import org.jetbrains.annotations.NotNull
 
 import java.util.concurrent.ConcurrentHashMap
 import static java.util.Comparator.comparing

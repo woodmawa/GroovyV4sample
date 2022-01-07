@@ -1,8 +1,7 @@
 package script
 
-import MOP.WillsMetaClass
+
 import MOP.WillsMetaClass2
-import MOP.WillsMetaClass2_broken
 
 import java.lang.reflect.Modifier
 
