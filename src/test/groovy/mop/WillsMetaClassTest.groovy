@@ -1,9 +1,13 @@
 package mop
 
+import groovy.test.GroovyAssert
 import spock.lang.Shared
 import spock.lang.Specification
 
+import java.lang.reflect.Modifier
 import java.util.concurrent.atomic.AtomicLong
+
+import static groovy.test.GroovyAssert.*
 
 class SampleClass {
     String someProperty = "class property"
@@ -26,11 +30,38 @@ class WillsMetaClassTest extends Specification {
 
 
     def "test standard Mop"() {
+        given:
+        def NO_ARGS = (Object[])[]
+
         expect:
         sample.someProperty == "class property"
         sample.someMethod() == "someMethod return"
 
         sample.hasProperty('someProperty')
+
+        //normal method
+        sample.respondsTo('someMethod', NO_ARGS)
+        MetaMethod metaMethod = sample.metaClass.pickMethod('someMethod', null)
+        metaMethod.name == 'someMethod'
+        Modifier.isPublic( metaMethod.modifiers)
+        sample.invokeMethod('someMethod', null) == "someMethod return"
+
+        GroovyAssert.shouldFail(MissingMethodException) {
+            sample.invokeMethod('dynamicMethod', null) == "dynamicMethod return"
+        }
+
+        shouldFail(MissingPropertyException) {
+            sample.dynamicProperty
+        }
+
+        //class static method
+        sample.respondsTo('someStaticMethod', NO_ARGS)
+        sample.invokeMethod('someStaticMethod', null) == "someStaticMethod return"
+
+        sample.properties.size() == 3
+        sample.properties.toString() == [someProperty:"class property", staticCounter:0, class:mop.SampleClass].toString()
+
+        sample.metaClass.methods.size() == 18
     }
 
 }
