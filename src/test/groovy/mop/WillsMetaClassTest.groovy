@@ -4,6 +4,7 @@ import groovy.test.GroovyAssert
 import spock.lang.Shared
 import spock.lang.Specification
 
+import java.lang.reflect.Constructor
 import java.lang.reflect.Modifier
 import java.util.concurrent.atomic.AtomicLong
 
@@ -21,10 +22,19 @@ class SampleClass {
 class WillsMetaClassTest extends Specification {
 
     @Shared SampleClass sample
+    @Shared WillsMetaClass2 wmc
 
     //run before each test
     def setup () {
         sample = new SampleClass()
+
+        List consList = WillsMetaClass2.constructors.collect{"${it.name}, ${it.parameterTypes}" }
+        Constructor cons = WillsMetaClass2.constructors.find{it.parameterTypes == [Class, boolean, boolean]}
+
+        wmc = new WillsMetaClass2 (SampleClass, true, true)
+        wmc.initialize()
+        assert wmc
+
 
     }
 
@@ -64,4 +74,23 @@ class WillsMetaClassTest extends Specification {
         sample.metaClass.methods.size() == 18
     }
 
+    def "test replacement WillsMetaClass" () {
+        given:
+
+        when:
+
+        sample.setMetaClass(wmc)   //set new metaclass
+
+        assert sample.metaClass == wmc
+
+        shouldFail(MissingPropertyException) {
+            sample.dynamicProperty
+        }
+
+        sample.metaClass.dynamicProperty = "dynamic metaClass property"
+
+        then:
+
+        sample.dynamicProperty == "dynamic metaClass property"
+    }
 }
