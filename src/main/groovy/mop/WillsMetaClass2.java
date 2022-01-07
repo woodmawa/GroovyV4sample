@@ -328,7 +328,7 @@ public class WillsMetaClass2 extends MetaClassImpl implements GroovyObject {
      */
     public WillsMetaClass2(Class theClass, boolean register, boolean allowChangesAfterInit) {
         this(theClass, register, allowChangesAfterInit, null);
-    }
+     }
 
     @Override
     public MetaMethod findMixinMethod(String methodName, Class[] arguments) {
@@ -682,23 +682,6 @@ public class WillsMetaClass2 extends MetaClassImpl implements GroovyObject {
                     .collect(Collectors.toList());
             return props;
         }
-    }
-
-    /* get static properties only */
-    public Collection<MetaProperty> getStaticProperties() {
-        Collection<MetaProperty> allProps = expandoProperties.entrySet()
-                .stream()
-                .filter(entry ->  Modifier.isStatic(entry.getValue().getModifiers()) )
-                .map (entry -> entry.getValue())
-                .collect(Collectors.toList());
-
-        List<MetaProperty> props = getProperties()
-                .stream()
-                .filter(mp ->  Modifier.isStatic(mp.getModifiers()) )
-              .collect(Collectors.toList());
-
-        allProps.addAll(props);
-        return allProps;
     }
 
     /**
@@ -1090,6 +1073,26 @@ public class WillsMetaClass2 extends MetaClassImpl implements GroovyObject {
         return propertyList;
     }
 
+    /*
+     *  new method - if you want the static properties available to you
+     *  get static properties only
+     */
+    public Collection<MetaProperty> getStaticProperties() {
+        Collection<MetaProperty> allProps = expandoProperties.entrySet()
+                .stream()
+                .filter(entry ->  Modifier.isStatic(entry.getValue().getModifiers()) )
+                .map (entry -> entry.getValue())
+                .collect(Collectors.toList());
+
+        List<MetaProperty> props = getProperties()
+                .stream()
+                .filter(mp ->  Modifier.isStatic(mp.getModifiers()) )
+                .collect(Collectors.toList());
+
+        allProps.addAll(props);
+        return allProps;
+    }
+
 
     private void performRegistryCallbacks() {
         MetaClassRegistry registry = GroovySystem.getMetaClassRegistry();
@@ -1329,7 +1332,9 @@ public class WillsMetaClass2 extends MetaClassImpl implements GroovyObject {
         //todo changed here
         if (name == "metaClass")
             return this;
-        else if (expandoProperties.containsKey(name)){
+        else if (name.equals("staticProperties"))  //experience as you have with properties
+            return getStaticProperties();
+         else if (expandoProperties.containsKey(name)){
             //ist in expando properties return from this cache
             MetaProperty mp = expandoProperties.get(name);
             return mp.getProperty(object);

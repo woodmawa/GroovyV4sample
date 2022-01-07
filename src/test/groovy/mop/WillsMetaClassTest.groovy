@@ -84,34 +84,38 @@ class WillsMetaClassTest extends Specification {
 
         assert sample.metaClass == wmc
 
-        /*shouldFail(MissingPropertyException) {
+        shouldFail(MissingPropertyException) {
             sample.dynamicProperty
         }
 
         sample.metaClass.dynamicProperty = "dynamic metaClass property"
-        */
 
-        //set it first time
+
+        //set static property for first time -
+        // NB you can only do this from metaClass, as GroovyObject mappings cant be changed, once in its held in mbp properties map along with others
         sample.metaClass.setStaticProperty ("newStaticDynamicProperty", "added static dynamic metaClass property")
-        mc = sample.metaClass
 
         then:
 
-        //sample.hasProperty("dynamicProperty")
-        //sample.dynamicProperty == "dynamic metaClass property"
+        sample.hasProperty("dynamicProperty")
+        sample.dynamicProperty == "dynamic metaClass property"
 
-        //sample.hasProperty("newStaticDynamicProperty")
-        //sample.metaClass.hasMetaProperty ("newStaticDynamicProperty")
+        //this doesnt count the static properties
+        sample.properties.size() == 4
 
-        // read once
+        sample.hasProperty("newStaticDynamicProperty")
+        sample.metaClass.hasMetaProperty ("newStaticDynamicProperty")
+
+        // read static for first time - uses the initial value initialiser and put entry into mbp backing map for this instance
         sample.newStaticDynamicProperty == "added static dynamic metaClass property"
+        //setup parity for staticProperties as you see with properties
+        sample.metaClass.staticProperties.size() == 2
+        sample.staticProperties.size() == 2
 
 
-        and:
+        and: "change value of the static property "
 
-        //set again
         sample.setProperty('newStaticDynamicProperty',  "modified static property") == null
-        //re read
         sample.newStaticDynamicProperty == "modified static property"
 
     }
