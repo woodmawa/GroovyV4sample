@@ -6,11 +6,7 @@ import groovy.transform.stc.ClosureParams;
 import groovy.transform.stc.SimpleType;
 import org.codehaus.groovy.reflection.CachedClass;
 import org.codehaus.groovy.reflection.MixinInMetaClass;
-import org.codehaus.groovy.runtime.DefaultCachedMethodKey;
-import org.codehaus.groovy.runtime.DefaultGroovyMethods;
-import org.codehaus.groovy.runtime.InvokerHelper;
-import org.codehaus.groovy.runtime.MetaClassHelper;
-import org.codehaus.groovy.runtime.MethodKey;
+import org.codehaus.groovy.runtime.*;
 import org.codehaus.groovy.runtime.callsite.CallSite;
 import org.codehaus.groovy.runtime.callsite.ConstructorMetaMethodSite;
 import org.codehaus.groovy.runtime.callsite.PogoMetaClassSite;
@@ -40,6 +36,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -899,6 +896,61 @@ public class WillsMetaClass2 extends MetaClassImpl implements GroovyObject {
         }
     }
 
+    //override the default that Groovy object support calls on an instance
+    @Override
+    public void setProperty(Object instance, String property, Object newValue) {
+        if (newValue instanceof Closure) {
+            if (property.equals(CONSTRUCTOR)) {
+                property = GROOVY_CONSTRUCTOR;
+            }
+            Closure callable = (Closure) newValue;
+            final List<MetaMethod> list = ClosureMetaMethod.createMethodList(property, theClass, callable);
+            for (MetaMethod method : list) {
+                // here we don't care if the method exists or not we assume the
+                // developer is responsible and wants to override methods where necessary
+                registerInstanceMethod(method);
+            }
+        } else {
+            if (expandoProperties.containsKey(property )) {
+                //already registered - we just need to call the setter
+                //should work even if called on previoulsy registered staticProperty
+                MetaProperty mbp = expandoProperties.get(property);
+                //need to pass the instance that's used as key for looking up the value in mbp backing map
+                mbp.setProperty(instance, newValue);
+            } else {
+                //first time so, better register it - cant be static property if call on the instance
+                //if you want static property have to set this via metaClass.setStaticProperty
+                registerBeanProperty(property, newValue);
+            }
+        }
+    }
+    /*
+     * new method that can be called om metaClass to register the static bean
+     */
+    public void setStaticProperty(String property, Object newValue) {
+        if (newValue instanceof Closure) {
+            if (property.equals(CONSTRUCTOR)) {
+                property = GROOVY_CONSTRUCTOR;
+            }
+            Closure callable = (Closure) newValue;
+            final List<MetaMethod> list = ClosureMetaMethod.createMethodList(property, theClass, callable);
+            for (MetaMethod method : list) {
+                // here we don't care if the method exists or not we assume the
+                // developer is responsible and wants to override methods where necessary
+                registerStaticMethod(method);
+            }
+        } else {
+            if (expandoProperties.containsKey(property )) {
+                //already registered - we just need to call the setter
+                MetaProperty mp = expandoProperties.get(property);
+                mp.setProperty(property, newValue);
+            } else {
+                //first time so, better regsiter it
+                registerStaticBeanProperty(property, newValue);
+            }
+        }
+    }
+
     public WillsMetaClass2 define(@ClosureParams(value=SimpleType.class, options="java.lang.Object")
                                                @DelegatesTo(value= WillsMetaClass2.DefiningClosure.class, strategy=Closure.DELEGATE_ONLY) Closure closure) {
         final WillsMetaClass2.DefiningClosure definer = new WillsMetaClass2.DefiningClosure();
@@ -941,6 +993,39 @@ public class WillsMetaClass2 extends MetaClassImpl implements GroovyObject {
         }
     }
 
+
+    /**
+     * Registers a new static method for the given method name and closure on this MetaClass
+     *
+     * @param metaMethod
+     */
+    public void registerStaticMethod(final MetaMethod metaMethod) {
+        final boolean inited = this.initCalled;
+        performOperationOnMetaClass(() -> {
+            String methodName = metaMethod.getName();
+            checkIfGroovyObjectMethod(metaMethod);
+            MethodKey key = new DefaultCachedMethodKey(theClass, methodName, metaMethod.getParameterTypes(), false);
+
+            if (isInitialized()) {
+                throw new RuntimeException("Already initialized, cannot add new method: " + metaMethod);
+            }
+            // we always adds meta methods to class itself
+            addMetaMethodToIndex(metaMethod, metaMethodIndex.getHeader(theClass));
+
+            dropMethodCache(methodName);
+            expandoMethods.put(key, metaMethod);
+
+            if (inited && isGetter(methodName, metaMethod.getParameterTypes())) {
+                String propertyName = getPropertyForGetter(methodName);
+                registerBeanPropertyForMethod(metaMethod, propertyName, true, false);
+
+            } else if (inited && isSetter(methodName, metaMethod.getParameterTypes())) {
+                String propertyName = getPropertyForSetter(methodName);
+                registerBeanPropertyForMethod(metaMethod, propertyName, false, false);
+            }
+            performRegistryCallbacks();
+        });
+    }
 
     /**
      * Registers a new instance method for the given method name and closure on this MetaClass
@@ -1065,6 +1150,7 @@ public class WillsMetaClass2 extends MetaClassImpl implements GroovyObject {
     protected void registerStaticMethod(final String name, final Closure callable) {
         registerStaticMethod(name, callable, null);
     }
+
 
     /**
      * Registers a new static method for the given method name and closure on this MetaClass
@@ -1243,6 +1329,11 @@ public class WillsMetaClass2 extends MetaClassImpl implements GroovyObject {
         //todo changed here
         if (name == "metaClass")
             return this;
+        else if (expandoProperties.containsKey(name)){
+            //ist in expando properties return from this cache
+            MetaProperty mp = expandoProperties.get(name);
+            return mp.getProperty(object);
+        }
         else
             return super.getProperty(object, name);
     }

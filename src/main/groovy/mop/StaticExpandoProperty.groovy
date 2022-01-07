@@ -3,6 +3,8 @@ package mop
 import org.apache.groovy.util.concurrent.ManagedIdentityConcurrentMap
 import org.codehaus.groovy.reflection.CachedClass
 import org.codehaus.groovy.reflection.ReflectionCache
+import org.codehaus.groovy.runtime.MetaClassHelper
+import org.codehaus.groovy.runtime.typehandling.DefaultTypeTransformation
 import org.codehaus.groovy.util.ReferenceBundle
 
 import java.lang.reflect.Modifier
@@ -70,6 +72,9 @@ public class StaticExpandoProperty extends MetaBeanProperty {
         initialValue = iv;
 
         instance2Prop = getInstance2PropName(name);
+        Map check = PROPNAME_TO_MAP
+        assert check.size() >0
+
     }
 
     /**
@@ -119,6 +124,45 @@ public class StaticExpandoProperty extends MetaBeanProperty {
         return this.setter;
     }
 
+    /**
+     * here so i can trace in my own code - Get the property of the given object.
+     *
+     * @param object which to be got
+     * @return the property of the given object
+     * @throws RuntimeException if the property could not be evaluated
+     */
+    @Override
+    public Object getProperty(Object object) {
+        MetaMethod getter = getGetter();
+        if (getter == null) {
+            if (field != null) return field.getProperty(object);
+            //TODO: create a WriteOnlyException class?
+            throw new GroovyRuntimeException("Cannot read write-only property: " + name);
+        }
+        var result = getter.invoke(object, MetaClassHelper.EMPTY_ARRAY);
+        return result;
+    }
+
+    /**
+     * Set the property on the given object to the new value.
+     *
+     * @param object   on which to set the property
+     * @param newValue the new value of the property
+     * @throws RuntimeException if the property could not be set
+     */
+    @Override
+    public void setProperty(Object object, Object newValue) {
+        MetaMethod setter = getSetter();
+        if (setter == null) {
+            if (field != null && !Modifier.isFinal(field.getModifiers())) {
+                field.setProperty(object, newValue);
+                return;
+            }
+            throw new GroovyRuntimeException("Cannot set read-only property: " + name);
+        }
+        newValue = DefaultTypeTransformation.castToType(newValue, getType());
+        setter.invoke(object, new Object[]{newValue});
+    }
 
     /**
      * Accesses the ThreadBound state of the property as a getter
@@ -161,7 +205,8 @@ public class StaticExpandoProperty extends MetaBeanProperty {
            */
         @Override
         public Object invoke(Object object, Object[] arguments) {
-            return instance2Prop.getOrPut(object, getInitialValue());
+            Object result =  instance2Prop.getOrPut(object, getInitialValue());
+            return result;
         }
     }
 

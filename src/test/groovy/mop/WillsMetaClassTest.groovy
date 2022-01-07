@@ -76,6 +76,7 @@ class WillsMetaClassTest extends Specification {
 
     def "test replacement WillsMetaClass" () {
         given:
+        MetaClass mc
 
         when:
 
@@ -83,14 +84,35 @@ class WillsMetaClassTest extends Specification {
 
         assert sample.metaClass == wmc
 
-        shouldFail(MissingPropertyException) {
+        /*shouldFail(MissingPropertyException) {
             sample.dynamicProperty
         }
 
         sample.metaClass.dynamicProperty = "dynamic metaClass property"
+        */
+
+        //set it first time
+        sample.metaClass.setStaticProperty ("newStaticDynamicProperty", "added static dynamic metaClass property")
+        mc = sample.metaClass
 
         then:
 
-        sample.dynamicProperty == "dynamic metaClass property"
+        //sample.hasProperty("dynamicProperty")
+        //sample.dynamicProperty == "dynamic metaClass property"
+
+        //sample.hasProperty("newStaticDynamicProperty")
+        //sample.metaClass.hasMetaProperty ("newStaticDynamicProperty")
+
+        // read once
+        sample.newStaticDynamicProperty == "added static dynamic metaClass property"
+
+
+        and:
+
+        //set again
+        sample.setProperty('newStaticDynamicProperty',  "modified static property") == null
+        //re read
+        sample.newStaticDynamicProperty == "modified static property"
+
     }
 }
