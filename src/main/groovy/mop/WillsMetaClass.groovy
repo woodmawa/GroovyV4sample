@@ -1,16 +1,12 @@
-package MOP
+package mop
 
-import groovy.transform.InheritConstructors
+
 import org.codehaus.groovy.reflection.CachedClass
-import org.codehaus.groovy.reflection.CachedMethod
 import org.codehaus.groovy.runtime.DefaultCachedMethodKey
 import org.codehaus.groovy.runtime.MethodClosure
 import org.codehaus.groovy.runtime.MethodKey
-import org.codehaus.groovy.runtime.metaclass.ThreadManagedMetaBeanProperty
 
 import java.lang.reflect.Constructor
-import java.lang.reflect.Method
-import java.lang.reflect.Modifier
 import java.util.concurrent.ConcurrentHashMap
 
 class WillsMetaClass extends ExpandoMetaClass {

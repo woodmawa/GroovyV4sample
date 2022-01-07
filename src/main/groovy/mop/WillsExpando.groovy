@@ -1,18 +1,16 @@
-package MOP
+package mop
 
-import com.sun.tools.jdi.JDWP
+
 import groovy.transform.CompileStatic
 import groovy.transform.EqualsAndHashCode
 import org.codehaus.groovy.reflection.CachedClass
 import org.codehaus.groovy.reflection.CachedMethod
 import org.codehaus.groovy.reflection.ClassInfo
-import org.codehaus.groovy.reflection.ReflectionUtils
 import org.codehaus.groovy.runtime.MethodClosure
 import org.codehaus.groovy.runtime.metaclass.ClosureMetaMethod
 import org.codehaus.groovy.runtime.metaclass.ClosureStaticMetaMethod
 import org.codehaus.groovy.runtime.metaclass.ReflectionMetaMethod
 
-import java.lang.reflect.Field
 import java.lang.reflect.Method
 import java.lang.reflect.Modifier
 import java.util.concurrent.Callable

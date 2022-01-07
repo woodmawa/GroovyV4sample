@@ -1,6 +1,6 @@
 package extensible
 
-import MOP.WillsExpando
+import mop.WillsExpando
 import org.codehaus.groovy.runtime.MethodClosure
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test

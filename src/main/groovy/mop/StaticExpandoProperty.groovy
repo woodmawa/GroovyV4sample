@@ -1,8 +1,7 @@
-package MOP
+package mop
 
 import org.apache.groovy.util.concurrent.ManagedIdentityConcurrentMap
 import org.codehaus.groovy.reflection.CachedClass
-import org.codehaus.groovy.reflection.ClassInfo
 import org.codehaus.groovy.reflection.ReflectionCache
 import org.codehaus.groovy.util.ReferenceBundle
 

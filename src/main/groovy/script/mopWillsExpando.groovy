@@ -1,6 +1,6 @@
 package script
 
-import MOP.WillsExpando
+import mop.WillsExpando
 import org.codehaus.groovy.reflection.CachedMethod
 import org.codehaus.groovy.runtime.metaclass.ClosureMetaMethod
 

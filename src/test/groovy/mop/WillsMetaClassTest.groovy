@@ -1,11 +1,9 @@
-package MOP
+package mop
 
-import org.junit.jupiter.api.Test
 import spock.lang.Shared
 import spock.lang.Specification
 
 import java.util.concurrent.atomic.AtomicLong
-
 
 class SampleClass {
     String someProperty = "class property"
@@ -16,8 +14,7 @@ class SampleClass {
 
 }
 
-/*
-class WillsMetaClassTest extends Specification{
+class WillsMetaClassTest extends Specification {
 
     @Shared SampleClass sample
 
@@ -36,15 +33,4 @@ class WillsMetaClassTest extends Specification{
         sample.hasProperty('someProperty')
     }
 
-
-}
-*/
-
-
-
-class MetaClassTest {
-    @Test
-    void test () {
-        assert true
-    }
 }

@@ -1,6 +1,6 @@
 package script
 
-import MOP.WillsExpando
+import mop.WillsExpando
 import org.codehaus.groovy.runtime.MethodClosure
 
 import java.lang.reflect.Modifier
@@ -10,6 +10,7 @@ def lambda = () -> println "hello"
 assert lambda instanceof Closure
 println lambda.class
 lambda ()
+
 
 class AAA {}
 AAA.metaClass.myProp = 42  //is this done as static as its on class ?

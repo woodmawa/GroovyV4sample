@@ -1,4 +1,4 @@
-package MOP
+package pointmap
 
 import spock.lang.Specification
 

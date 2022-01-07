@@ -1,6 +1,6 @@
 package extensible
 
-import MOP.WillsExpando
+import mop.WillsExpando
 import org.junit.jupiter.api.Test
 
 //subclass of wills expando to test subclasses of WillsExpando

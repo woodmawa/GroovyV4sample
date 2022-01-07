@@ -1,7 +1,7 @@
 package script
 
 
-import MOP.WillsMetaClass2
+import mop.WillsMetaClass2
 
 import java.lang.reflect.Modifier
 
