@@ -1,7 +1,7 @@
 package script
 
 
-import mop.WillsMetaClass2
+import mop.WillsMetaClass
 
 import java.lang.reflect.Modifier
 
@@ -13,14 +13,14 @@ class WillsClass {
 
 WillsClass wo = WillsClass::new()
 
-WillsMetaClass2 wmc = new WillsMetaClass2(WillsClass, true, true)
+WillsMetaClass wmc = new WillsMetaClass(WillsClass, true, true)
 wmc.dynProp = "wmc dynamic prop"
 
 //wmc.initialize()
 wo.setMetaClass(wmc)   //set new metaclass
 
 def newMetaClass = wo.metaClass
-assert wo.metaClass.class == WillsMetaClass2
+assert wo.metaClass.class == WillsMetaClass
 
 def dynProp = wo.dynProp
 //def unknown = wo.unknown

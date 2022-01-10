@@ -235,7 +235,7 @@ import java.util.stream.Collectors;
  *
  * @since 1.5
  */
-public class WillsMetaClass2 extends MetaClassImpl implements GroovyObject {
+public class WillsMetaClass extends MetaClassImpl implements GroovyObject {
 
     private static final Class[] EMPTY_CLASS_ARRAY = new Class[0];
     private static final String META_CLASS = "metaClass";
@@ -278,11 +278,11 @@ public class WillsMetaClass2 extends MetaClassImpl implements GroovyObject {
     private ClosureStaticMetaMethod invokeStaticMethodMethod;
     private final Set<MixinInMetaClass> mixinClasses = new LinkedHashSet<MixinInMetaClass>();
 
-    public WillsMetaClass2(Class theClass, boolean register, boolean allowChangesAfterInit, MetaMethod[] add) {
+    public WillsMetaClass(Class theClass, boolean register, boolean allowChangesAfterInit, MetaMethod[] add) {
         this(GroovySystem.getMetaClassRegistry(), theClass, register, allowChangesAfterInit, add);
     }
 
-    public WillsMetaClass2(MetaClassRegistry registry, Class theClass, boolean register, boolean allowChangesAfterInit, MetaMethod[] add) {
+    public WillsMetaClass(MetaClassRegistry registry, Class theClass, boolean register, boolean allowChangesAfterInit, MetaMethod[] add) {
         super(registry, theClass, add);
         this.myMetaClass = InvokerHelper.getMetaClass(getClass());
         this.inRegistry = register;
@@ -294,11 +294,11 @@ public class WillsMetaClass2 extends MetaClassImpl implements GroovyObject {
      *
      * @param theClass The class that the MetaClass applies to
      */
-    public WillsMetaClass2(Class theClass) {
+    public WillsMetaClass(Class theClass) {
         this(theClass,false,false,null);
     }
 
-    public WillsMetaClass2(Class theClass, MetaMethod [] add) {
+    public WillsMetaClass(Class theClass, MetaMethod [] add) {
         this(theClass,false,false,add);
     }
 
@@ -309,11 +309,11 @@ public class WillsMetaClass2 extends MetaClassImpl implements GroovyObject {
      * @param theClass The class that the MetaClass applies to
      * @param register True if the MetaClass should be registered inside the MetaClassRegistry. This defaults to true and ExpandoMetaClass will effect all instances if changed
      */
-    public WillsMetaClass2(Class theClass, boolean register) {
+    public WillsMetaClass(Class theClass, boolean register) {
         this(theClass,register,false,null);
     }
 
-    public WillsMetaClass2(Class theClass, boolean register, MetaMethod [] add) {
+    public WillsMetaClass(Class theClass, boolean register, MetaMethod [] add) {
         this(theClass, register, false, add);
     }
 
@@ -325,7 +325,7 @@ public class WillsMetaClass2 extends MetaClassImpl implements GroovyObject {
      * @param register True if the MetaClass should be registered inside the MetaClassRegistry. This defaults to true and ExpandoMetaClass will effect all instances if changed
      * @param allowChangesAfterInit Should the meta class be modifiable after initialization. Default is false.
      */
-    public WillsMetaClass2(Class theClass, boolean register, boolean allowChangesAfterInit) {
+    public WillsMetaClass(Class theClass, boolean register, boolean allowChangesAfterInit) {
         this(theClass, register, allowChangesAfterInit, null);
      }
 
@@ -506,7 +506,7 @@ public class WillsMetaClass2 extends MetaClassImpl implements GroovyObject {
     }
 
     private void addSuperMethodIfNotOverridden(final MetaMethod metaMethodFromSuper) {
-        performOperationOnMetaClass(new WillsMetaClass2.Callable() {
+        performOperationOnMetaClass(new WillsMetaClass.Callable() {
             @Override
             public void call() {
 
@@ -822,10 +822,10 @@ public class WillsMetaClass2 extends MetaClassImpl implements GroovyObject {
             if (property.equals(STATIC_QUALIFIER)) {
                 return new WillsExpandoMetaProperty(property, true);
             } else if (property.equals(CONSTRUCTOR)) {
-                return new WillsMetaClass2.ExpandoMetaConstructor();
+                return new WillsMetaClass.ExpandoMetaConstructor();
             } else {
                 if (myMetaClass.hasProperty(this, property) == null)
-                    return new WillsMetaClass2.WillsExpandoMetaProperty(property);
+                    return new WillsMetaClass.WillsExpandoMetaProperty(property);
                 else
                     return myMetaClass.getProperty(this, property);
             }
@@ -957,9 +957,9 @@ public class WillsMetaClass2 extends MetaClassImpl implements GroovyObject {
         }
     }
 
-    public WillsMetaClass2 define(@ClosureParams(value=SimpleType.class, options="java.lang.Object")
-                                               @DelegatesTo(value= WillsMetaClass2.DefiningClosure.class, strategy=Closure.DELEGATE_ONLY) Closure closure) {
-        final WillsMetaClass2.DefiningClosure definer = new WillsMetaClass2.DefiningClosure();
+    public WillsMetaClass define(@ClosureParams(value=SimpleType.class, options="java.lang.Object")
+                                               @DelegatesTo(value= WillsMetaClass.DefiningClosure.class, strategy=Closure.DELEGATE_ONLY) Closure closure) {
+        final WillsMetaClass.DefiningClosure definer = new WillsMetaClass.DefiningClosure();
         Object delegate = closure.getDelegate();
         closure.setDelegate(definer);
         closure.setResolveStrategy(Closure.DELEGATE_ONLY);
@@ -970,7 +970,7 @@ public class WillsMetaClass2 extends MetaClassImpl implements GroovyObject {
         return this;
     }
 
-    protected synchronized void performOperationOnMetaClass(WillsMetaClass2.Callable c) {
+    protected synchronized void performOperationOnMetaClass(WillsMetaClass.Callable c) {
         try {
             writeLock.lock();
             if (allowChangesAfterInit) {
@@ -1251,14 +1251,14 @@ public class WillsMetaClass2 extends MetaClassImpl implements GroovyObject {
      */
     public void refreshInheritedMethods(Set modifiedSuperExpandos) {
         for (Object modifiedSuperExpando : modifiedSuperExpandos) {
-            WillsMetaClass2 superExpando = (WillsMetaClass2) modifiedSuperExpando;
+            WillsMetaClass superExpando = (WillsMetaClass) modifiedSuperExpando;
             if (superExpando != this) {
                 refreshInheritedMethods(superExpando);
             }
         }
     }
 
-    private void refreshInheritedMethods(WillsMetaClass2 superExpando) {
+    private void refreshInheritedMethods(WillsMetaClass superExpando) {
         List<MetaMethod> metaMethods = superExpando.getExpandoMethods();
         for (MetaMethod metaMethod : metaMethods) {
             if (metaMethod.isStatic()) {
@@ -1336,7 +1336,7 @@ public class WillsMetaClass2 extends MetaClassImpl implements GroovyObject {
         }
 
         if ("mixedIn".equals(name)) {
-            return new WillsMetaClass2.MixedInAccessor(object, mixinClasses);
+            return new WillsMetaClass.MixedInAccessor(object, mixinClasses);
         }
 
         return super.getProperty(sender, object, name, useSuper, fromInsideClass);
@@ -1581,15 +1581,15 @@ public class WillsMetaClass2 extends MetaClassImpl implements GroovyObject {
         }
 
         public void mixin(List categories) {
-            DefaultGroovyMethods.mixin(WillsMetaClass2.this, categories);
+            DefaultGroovyMethods.mixin(WillsMetaClass.this, categories);
         }
 
         public void mixin(Class[] categories) {
-            DefaultGroovyMethods.mixin(WillsMetaClass2.this, categories);
+            DefaultGroovyMethods.mixin(WillsMetaClass.this, categories);
         }
 
         public void define(Class subClass, Closure closure) {
-            final WillsMetaClass2.SubClassDefiningClosure definer = new WillsMetaClass2.SubClassDefiningClosure(subClass);
+            final WillsMetaClass.SubClassDefiningClosure definer = new WillsMetaClass.SubClassDefiningClosure(subClass);
             closure.setDelegate(definer);
             closure.setResolveStrategy(Closure.DELEGATE_FIRST);
             closure.call((Object)null);
@@ -1603,7 +1603,7 @@ public class WillsMetaClass2 extends MetaClassImpl implements GroovyObject {
             catch (MissingMethodException mme) {
                 if (obj instanceof Object[]) {
                     if (STATIC_QUALIFIER.equals(name)) {
-                        final WillsMetaClass2.StaticDefiningClosure staticDef = new WillsMetaClass2.StaticDefiningClosure();
+                        final WillsMetaClass.StaticDefiningClosure staticDef = new WillsMetaClass.StaticDefiningClosure();
                         Closure c = (Closure) ((Object[]) obj)[0];
                         c.setDelegate(staticDef);
                         c.setResolveStrategy(Closure.DELEGATE_ONLY);
@@ -1616,7 +1616,7 @@ public class WillsMetaClass2 extends MetaClassImpl implements GroovyObject {
                     } else if (args.length == 2 && args[0] instanceof Class && args[1] instanceof Closure)
                         registerSubclassInstanceMethod(name, (Class) args[0], (Closure) args[1]);
                     else
-                        WillsMetaClass2.this.setProperty(name, ((Object[]) obj)[0]);
+                        WillsMetaClass.this.setProperty(name, ((Object[]) obj)[0]);
 
                     return null;
                 }
@@ -1627,22 +1627,22 @@ public class WillsMetaClass2 extends MetaClassImpl implements GroovyObject {
 
         @Override
         public void setProperty(String property, Object newValue) {
-            WillsMetaClass2.this.setProperty(property, newValue);
+            WillsMetaClass.this.setProperty(property, newValue);
         }
 
         @Override
         public Object getProperty(String property) {
             if (STATIC_QUALIFIER.equals(property))
-                return new WillsMetaClass2.StaticDefiningClosure();
+                return new WillsMetaClass.StaticDefiningClosure();
 
             if (definition)
-                return new WillsMetaClass2.WillsExpandoMetaProperty(property);
+                return new WillsMetaClass.WillsExpandoMetaProperty(property);
             else
                 throw new MissingPropertyException(property, getClass());
         }
     }
 
-    private class StaticDefiningClosure extends WillsMetaClass2.WillsExpandoMetaProperty {
+    private class StaticDefiningClosure extends WillsMetaClass.WillsExpandoMetaProperty {
         protected StaticDefiningClosure() {
             super(STATIC_QUALIFIER, true);
         }

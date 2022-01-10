@@ -24,16 +24,16 @@ class WillsMetaClassTest extends Specification {
     @Shared
     SampleClass sample
     @Shared
-    WillsMetaClass2 wmc
+    WillsMetaClass wmc
 
     //run before each test
     def setup() {
         sample = new SampleClass()
 
-        List consList = WillsMetaClass2.constructors.collect { "${it.name}, ${it.parameterTypes}" }
-        Constructor cons = WillsMetaClass2.constructors.find { it.parameterTypes == [Class, boolean, boolean] }
+        List consList = WillsMetaClass.constructors.collect { "${it.name}, ${it.parameterTypes}" }
+        Constructor cons = WillsMetaClass.constructors.find { it.parameterTypes == [Class, boolean, boolean] }
 
-        wmc = new WillsMetaClass2(SampleClass, true, true)
+        wmc = new WillsMetaClass(SampleClass, true, true)
         wmc.initialize()
         assert wmc
 
@@ -190,7 +190,7 @@ class WillsMetaClassTest extends Specification {
 
         //todo : need to clear out statics as they persist across tests and buggers the counts
         stat != null
-        stat.getClass() == WillsMetaClass2.WillsExpandoMetaProperty
+        stat.getClass() == WillsMetaClass.WillsExpandoMetaProperty
         beforeStaticPropsSize == 0
         beforeStaticMethodsSize == 0
         afterStaticPropsSize == 0
@@ -226,7 +226,7 @@ class WillsMetaClassTest extends Specification {
 
         //todo : need to clear out statics as they persist across tests and buggers the counts
         stat != null
-        stat.getClass() == WillsMetaClass2.WillsExpandoMetaProperty
+        stat.getClass() == WillsMetaClass.WillsExpandoMetaProperty
         beforeStaticPropsSize == 0
         beforeStaticMethodsSize == 0
         afterStaticPropsSize == 1

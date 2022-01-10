@@ -11,7 +11,7 @@ class StaticExpandoPropertyTest extends Specification {
     def "create proxied property" () {
 
         given :
-        WillsMetaClass2 mwc = new WillsMetaClass2(Dummy, false, true)
+        WillsMetaClass mwc = new WillsMetaClass(Dummy, false, true)
 
         Dummy dummy = new Dummy ()
         int dummyHash = dummy.hashCode()
