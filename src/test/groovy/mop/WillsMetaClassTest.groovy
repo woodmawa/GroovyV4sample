@@ -163,7 +163,7 @@ class WillsMetaClassTest extends Specification {
 
     }
 
-    def "def test of metaClass.static" () {
+    def "def test of adding a method closure to metaClass.static" () {
         given:
 
         when:
@@ -173,24 +173,66 @@ class WillsMetaClassTest extends Specification {
 
         def stat =  sample.metaClass.'static'
 
-        def beforePropsSize = stat.properties.size ()
-        def beforeStaticPropsSize = stat.methods.size ()
+        def beforeStaticPropsSize = stat.properties.size ()
+        def beforeStaticMethodsSize = stat.methods.size ()
 
-        stat.newStatProp = 10
+        //stat.newStatProp = 10
         stat.newStatMethod = {"new static method"}
 
-        def afterPropsSize = stat.properties.size ()
-        def afterStaticPropsSize = stat.methods.size ()
+        def afterStaticPropsSize = stat.properties.size ()
+        def afterStaticMethodsSize = stat.methods.size ()
+
+        MetaMethod lookupMethod = sample.metaClass.getStaticMetaMethod('newStatMethod')
+
+        def result = sample.newStatMethod()
 
         then:
 
         //todo : need to clear out statics as they persist across tests and buggers the counts
         stat != null
         stat.getClass() == WillsMetaClass2.WillsExpandoMetaProperty
-        beforePropsSize == 0
         beforeStaticPropsSize == 0
-        afterPropsSize == 1
-        afterStaticPropsSize == 2 //gettter and setter
+        beforeStaticMethodsSize == 0
+        afterStaticPropsSize == 0
+        afterStaticMethodsSize == 2 //adds 2 entries one for closure with no params, and one with params
+        sample.respondsTo('newStatMethod')
+        lookupMethod.invoke(sample) == "new static method"
+        Modifier.isStatic (lookupMethod.modifiers)
+        result == "new static method"
+    }
+
+    def "def test of adding a property  to metaClass.static" () {
+        given:
+
+        when:
+        sample.setMetaClass(wmc)   //set new metaclass
+
+        assert sample.metaClass == wmc
+
+        def stat =  sample.metaClass.'static'
+
+        def beforeStaticPropsSize = stat.properties.size ()
+        def beforeStaticMethodsSize = stat.methods.size ()
+
+        //stat.newStatProp = 10
+        stat.newStaticProperty = 100
+
+        def afterStaticPropsSize = stat.properties.size ()
+        def afterStaticMethodsSize = stat.methods.size ()
+
+        MetaBeanProperty mbp = sample.metaClass.getMetaProperty('newStaticProperty')
+
+        then:
+
+        //todo : need to clear out statics as they persist across tests and buggers the counts
+        stat != null
+        stat.getClass() == WillsMetaClass2.WillsExpandoMetaProperty
+        beforeStaticPropsSize == 0
+        beforeStaticMethodsSize == 0
+        afterStaticPropsSize == 1
+        afterStaticMethodsSize == 2 //adds 2 entries one for getter and one for setter
+        stat.newStaticProperty == 100
+        Modifier.isStatic(mbp.modifiers)
 
     }
 }

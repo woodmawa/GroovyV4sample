@@ -3,7 +3,9 @@ package mop
 import org.apache.groovy.util.concurrent.ManagedIdentityConcurrentMap
 import org.codehaus.groovy.reflection.CachedClass
 import org.codehaus.groovy.reflection.ReflectionCache
+import org.codehaus.groovy.runtime.DefaultCachedMethodKey
 import org.codehaus.groovy.runtime.MetaClassHelper
+import org.codehaus.groovy.runtime.MethodKey
 import org.codehaus.groovy.runtime.typehandling.DefaultTypeTransformation
 import org.codehaus.groovy.util.ReferenceBundle
 
@@ -62,7 +64,7 @@ public class StaticExpandoProperty extends MetaBeanProperty {
      * @param type           The type of the property
      * @param iv             The properties initial value
      */
-    public StaticExpandoProperty(Class declaringClass, String name, Class type, Object iv) {
+    StaticExpandoProperty(Class declaringClass, String name, Class type, Object iv) {
         super(name, type, null, null);
         this.type = type;
         this.declaringClass = declaringClass;
@@ -73,7 +75,6 @@ public class StaticExpandoProperty extends MetaBeanProperty {
 
         instance2Prop = getInstance2PropName(name);
         Map check = PROPNAME_TO_MAP
-        assert check.size() >0
 
     }
 
@@ -85,7 +86,7 @@ public class StaticExpandoProperty extends MetaBeanProperty {
      * @param type                The type of the property
      * @param initialValueCreator The closure responsible for creating the initial value
      */
-    public StaticExpandoProperty(Class declaringClass, String name, Class type, Closure initialValueCreator) {
+    StaticExpandoProperty(Class declaringClass, String name, Class type, Closure initialValueCreator) {
         super(name, type, null, null);
         this.type = type;
         this.declaringClass = declaringClass;
@@ -162,6 +163,12 @@ public class StaticExpandoProperty extends MetaBeanProperty {
         }
         newValue = DefaultTypeTransformation.castToType(newValue, getType());
         setter.invoke(object, new Object[]{newValue});
+    }
+
+    /*  provides a means to remove all static entries from StaticExpandoProperties PROPNAME_TO_MAP for this declaring class type*/
+    public void removeStaticBeanProperty(final String property) {
+        List cleared = instance2Prop.removeAll {it.getClass() == declaringClass}
+        cleared
     }
 
     /**

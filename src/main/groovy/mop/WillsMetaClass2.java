@@ -657,8 +657,12 @@ public class WillsMetaClass2 extends MetaClassImpl implements GroovyObject {
                     var result = prop.getProperty(this);
                     if (result != null)
                         return result;
-                    else
-                        return this;
+                    else {
+                        StringBuilder errMessage = new StringBuilder().append("property [")
+                                .append(property)
+                                .append("] not defined in expando properties");
+                        throw new MissingPropertyException(errMessage.toString());
+                    }
                 } else
                     return this;
             }
@@ -698,6 +702,8 @@ public class WillsMetaClass2 extends MetaClassImpl implements GroovyObject {
                     .collect(Collectors.toList());
             return props;
         }
+
+
     }
 
     /**
@@ -755,6 +761,7 @@ public class WillsMetaClass2 extends MetaClassImpl implements GroovyObject {
             performRegistryCallbacks();
         });
     }
+
 
     /* (non-Javadoc)
      * @see groovy.lang.MetaClassImpl#invokeConstructor(java.lang.Object[])
