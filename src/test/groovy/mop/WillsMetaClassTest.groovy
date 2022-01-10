@@ -235,4 +235,35 @@ class WillsMetaClassTest extends Specification {
         Modifier.isStatic(mbp.modifiers)
 
     }
+
+    def "check we actually get a shared static reference between two instances " () {
+        given :
+
+        when:
+
+        SampleClass.setMetaClass(wmc)
+        SampleClass.metaClass.'static'.newStaticProperty = 100
+        SampleClass.metaClass.'static'.newStaticClosure = {"static closure test"}
+
+
+        SampleClass s1 = new SampleClass()
+        SampleClass s2 = new SampleClass()
+        SampleClass s3 = new SampleClass()
+
+        WillsMetaClass perInstanceMc = new WillsMetaClass(SampleClass,false, true)
+        perInstanceMc.initialize()
+        s3.setMetaClass(perInstanceMc)
+        s3.metaClass.'static'.perInstanceMetaClassStaticProp = 200
+
+        then:
+        s1.newStaticProperty == 100
+        s2.newStaticProperty == 100
+        s1.newStaticClosure() == "static closure test"
+        s2.newStaticClosure() == "static closure test"
+
+        s3.perInstanceMetaClassStaticProp == 200
+        shouldFail(MissingPropertyException) {
+            s1.perInstanceMetaClassStaticProp == 200
+        }
+    }
 }
