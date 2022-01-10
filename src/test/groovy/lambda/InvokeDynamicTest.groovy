@@ -48,6 +48,20 @@ class InvokeDynamicTest {
         assert callerCtx
     }
 
+    /** cast a closure to function and then invoke it
+     *
+     */
+    @Test
+    void closureInvocationByFunctionReference () {
+
+        Function myClosureRef = {"return from closure"} as Function
+        assert myClosureRef.apply () == "return from closure"
+
+
+        Supplier supplier = bean::getValue as Supplier
+        assert supplier.get() == "hello from getter"
+    }
+
     /**
      * get value by generating a Supplier interface reference
      */
