@@ -38,9 +38,9 @@ dependencies {
     annotationProcessor("io.micronaut:micronaut-inject-java") // D2
     annotationProcessor("io.micronaut:micronaut-inject-groovy") // D2
 
-    implementation(platform("io.micronaut:micronaut-bom:$MicronautVersion")) // D3
-    implementation("io.micronaut:micronaut-inject") // D4
-    implementation group: 'io.micronaut', name: 'micronaut-inject-groovy', version: MicronautVersion
+    compileOnly(platform("io.micronaut:micronaut-bom:$MicronautVersion")) // D3
+    compileOnly("io.micronaut:micronaut-inject") // D4
+    compileOnly group: 'io.micronaut', name: 'micronaut-inject-groovy', version: MicronautVersion
 
 
 
