@@ -57,7 +57,6 @@ dependencies {
 }
 
 tasks.withType(GroovyCompile).configureEach {
-    // options.compilerArgs.add('-Dspock.iKnowWhatImDoing.disableGroovyVersionCheck=true')   //doesn't work
     options.forkOptions.jvmArgs << '-Dspock.iKnowWhatImDoing.disableGroovyVersionCheck=true'    //ok
 }
 
