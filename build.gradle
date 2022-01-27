@@ -19,7 +19,6 @@ String spockVersion = "2.0-groovy-3.0"
 String MicronautVersion  = "3.2.6"
 
 dependencies {
-    //implementation 'org.apache.groovy:groovy:4.0.0-beta-2'
     implementation group: "org.apache.groovy", name: 'groovy', version: "${groovyVersion}"
     //implementation 'org.jetbrains:annotations:20.1.0'
     //implementation group: 'org.apache.groovy', name: 'groovy-all', version: '4.0.0-beta-2', ext: 'pom'
@@ -35,6 +34,7 @@ dependencies {
     testImplementation "org.apache.groovy:groovy-test:${groovyVersion}"
 
     /*
+    // micronaut not yet working with groovy v4
     implementation group: 'javax.inject', name: 'javax.inject', version: '1'
 
     annotationProcessor(platform("io.micronaut:micronaut-bom:$MicronautVersion")) // D1
