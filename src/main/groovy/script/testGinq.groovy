@@ -65,7 +65,10 @@ result = GQ {
     select n, count(n)
 }
 
-println "groupBy " + result
+println "groupBy " + result + " expression class is is " + result.class
+
+org.apache.groovy.ginq.provider.collection.runtime.QueryableCollection expr = result
+
 
 //this does run, even if compiler doesnt like it !
 /*result = GQ {
