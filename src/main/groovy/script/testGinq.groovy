@@ -67,12 +67,12 @@ result = GQ {
 
 println "groupBy " + result
 
-//this does run !
-result = GQ {
+//this does run, even if compiler doesnt like it !
+/*result = GQ {
     from v in (
             from n in [1, 2, 3]
     select n
     )
     select v
 }
-println "nested  " + result
+println "nested  " + result*/
