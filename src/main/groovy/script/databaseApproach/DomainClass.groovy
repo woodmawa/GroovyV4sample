@@ -1,5 +1,8 @@
 package script.databaseApproach
 
+import groovy.util.logging.Slf4j
+
+@Slf4j
 class DomainClass {
     String name
     int propx = 10

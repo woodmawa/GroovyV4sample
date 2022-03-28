@@ -23,9 +23,7 @@ println "database (size: ${Database.db.size()} has entries : " + Database.db
 
 def GormEnrichedDomainClass = DomainClass as GormTrait
 List res = GormEnrichedDomainClass.where {it ->
-    String nm = name;
-    println "in where closure name resolved to $nm"
-    nm == "natwest" && propx == 10}  //validates to DomainClass
+    name == "natwest" && propx == 10}  //validates to DomainClass
 println "find results is $res"
 
 

@@ -1,8 +1,11 @@
 package script.databaseApproach
 
+import groovy.util.logging.Slf4j
+
 import java.util.concurrent.atomic.AtomicLong
 import groovy.lang.DelegatesTo
 
+@Slf4j
 trait GormTrait {
     static AtomicLong sequence = new AtomicLong (0)
     long id
@@ -18,30 +21,34 @@ trait GormTrait {
     //traits name instead
     def getName() {
         if ($delegate.hasProperty ('name')) {
-            println "get delegate name"
+            println ">>get delegate name, [" + $delegate.name + "]"
             $delegate.name
-
         }
-        else
+        else {
+            println ">>delegate instance doesnt have name, use the traits  [$name]"
+
             name //else use traits name
+        }
     }
 
     void setName(String nm) {
         if ($delegate.hasProperty ('name')) {
-            println "set delegate name"
+            println ">>set delegate name"
             $delegate.name = nm
             name = nm
 
         }
-        else
+        else {
+            println ">>delagate has no name - use the traits instead "
             name = nm //else use traits name
+        }
     }
 
     def save () {
         id = sequence.incrementAndGet()
         if (status == "new")
             status = "attached"
-        println "saving $id " + $delegate.name
+        println ">>saving $id " + $delegate.name
         Database.db.putIfAbsent(id, this)
 
     }
@@ -53,23 +60,22 @@ trait GormTrait {
 
     List  where (@DelegatesTo (DomainClass) Closure closure) {
         Closure constraint = closure.clone()
-        //rehydrate (delegate, owner, this)
+
         def inTraitThisIs = this  //the proxy
         def inTraitDelegateIs = this.$delegate //is the actual original class instance
-        constraint = constraint.rehydrate(this, this.$delegate, this.$delegate)
 
         def values = Database.db.values().toList()
         List matched = []
         values.each{record->
 
             //for each record in the DB avaluate to get the closure where the delegate is this record proxy, and owner is original instance and evaluate it
+            //rehydrate (delegate, owner, this)
             def constraintClos = constraint.rehydrate(record, record.$delegate, record.$delegate)
 
             def closureRet = constraintClos()
             if (closureRet)
                 matched << record
         }
-        //def matched = values.findAll (constraint)
         matched ?: []
     }
 
