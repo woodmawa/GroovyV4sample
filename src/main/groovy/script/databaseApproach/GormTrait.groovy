@@ -12,6 +12,7 @@ trait GormTrait {
     String status = "New"
     String name
 
+
     def self () {
         this
     }
