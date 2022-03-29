@@ -45,6 +45,13 @@ class GormDomainProxy<T> extends Proxy /*implements GormApi*/ {
             getAdaptee()
     }
 
+    def with (@DelegatesTo (DomainClass) Closure closure) {
+        Closure script = (Closure) closure.clone()
+        script.delegate = getAdaptee()
+
+        script(gorm)
+    }
+
     def methodMissing (String name, args) {
         if (adaptee.respondsTo(name, args)) {
             adaptee.invokeMethod(name, args)
