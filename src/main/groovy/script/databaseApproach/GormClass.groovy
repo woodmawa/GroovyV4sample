@@ -92,7 +92,8 @@ class GormClass {
         status = "soft deleted"
     }
 
-    def where (Closure closure) {
+    def where (@DelegatesTo (DomainClass) Closure closure) {
         Closure constraint = closure.clone()
+        constraint.call()
     }
 }
