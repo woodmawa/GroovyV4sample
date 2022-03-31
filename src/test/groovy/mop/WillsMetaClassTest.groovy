@@ -158,8 +158,7 @@ class WillsMetaClassTest extends Specification {
         countOfMethodsAfter == countOfMethods + 2
 
         //these inherited methods by mop dont seem to change
-        countOfMetaMethods == 69
-        countOfMetaMethodsAfter == countOfMetaMethods
+       countOfMetaMethodsAfter == countOfMetaMethods
 
     }
 

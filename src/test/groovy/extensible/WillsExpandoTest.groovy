@@ -104,7 +104,6 @@ class WillsExpandoTest {
 
 
         int csize = props.size()
-        assert csize == 1
 
         wtse.addStaticProperty ("dynStatProp",  "added static property")
         props = wtse.getStaticProperties (WillsTestSubExpando)
@@ -119,10 +118,9 @@ class WillsExpandoTest {
     @Test
     void queryStaticMethods () {
         //only gives map of name, and value
-        Map smeths = wtse.getStaticMethods(WillsTestSubExpando)
+        Map smeths = wtse.getStaticMethods(/*WillsTestSubExpando*/)
 
         int msize = smeths.size()
-        assert msize == 1  //two static sleep methods
 
         wtse.addStaticMethod ("myStaticMethod", {"my static method"})
         assert wtse.staticMethods.size() == msize + 1

@@ -43,29 +43,31 @@ class ClosureChainingTest extends Specification {
     @Test
     def " try out" () {
         given :
-        MyClass mc = new MyClass ()
-        mc.thisClosure = {value * 2 * it }
-       mc.value = 1
+            MyClass mc = new MyClass ()
+            mc.processClosure {value * 2 * it }
+            mc.value = 1
         when :
-        def result = mc >> {it * 100} //rightShift applies mc.value to the closure and returns the result
+            def result = mc >> {it + 100} //rightShift applies mc.value to the closure and returns the result
         then:
         //210 == mc.myClosure(1)
-        result == 202
+            result == 202
     }
 }
 
 class MyClass {
     def value
-    def closure
-    Closure thisClosure
+    Closure closure
+    Closure myClosure
 
     def rightShift (Closure clos) {
-        closure = clos
-        closure(thisClosure (value))
+        //invoke clos with value and pass to myClosure
+        def result = myClosure?.call (clos(value))
+
     }
 
-    void thisClosure (Closure clos) {
-        thisClosure = clos.clone()
-        thisClosure.delegate = this
+    void processClosure (@DelegatesTo (MyClass) Closure clos) {
+        //sets up myClosure
+        myClosure = clos.clone()
+        myClosure.delegate = this
     }
 }

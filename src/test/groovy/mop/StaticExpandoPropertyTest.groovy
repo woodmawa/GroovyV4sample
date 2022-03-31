@@ -2,9 +2,6 @@ package mop
 
 import spock.lang.Specification
 
-class Dummy {
-    int intVal = 0
-}
 
 class StaticExpandoPropertyTest extends Specification {
 
@@ -34,4 +31,9 @@ class StaticExpandoPropertyTest extends Specification {
         res == "new value"
 
     }
+}
+
+
+class Dummy {
+    int intVal = 0
 }

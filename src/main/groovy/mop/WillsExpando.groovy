@@ -155,12 +155,12 @@ class WillsExpando {
     }
 
     //non static form as we know the call instance context here
-    Map  getStaticMethods () {
+    Map<String, MethodClosure>  getStaticMethods () {
         List allMms = this.metaClass.getMethods().findResults{ it.name.contains('static') ? it : null}.collect()
 
         List<MetaMethod> mms = this.metaClass.getMethods().findResults{ it.name.contains('static') ? it : null}.collect()
 
-        Map m1 =[:]
+        Map<String, MethodClosure> m1 =[:]
         for (mm in mms){
             def name = mm.name
             def value = new MethodClosure (this.getClass(), name)

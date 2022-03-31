@@ -2,9 +2,6 @@ package mop
 
 import spock.lang.Specification
 
-class TestClass {
-    int intVal = 10
-}
 
 class StandardClassPropertyBeanTest extends Specification {
 
@@ -23,4 +20,8 @@ class StandardClassPropertyBeanTest extends Specification {
 
     }
 
+}
+
+class TestClass {
+    int intVal = 10
 }

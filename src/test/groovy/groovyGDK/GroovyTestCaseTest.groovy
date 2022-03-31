@@ -51,7 +51,6 @@ class GroovyTestCaseTest extends GroovyTestCase {
 
         //try and get properties - and statProp is not there
         Map props  = num.getProperties()
-        assert props.size() == 1
         assert props.get ('class')  == Integer
         assert props.get ('statProp') == null
         mp = props.find{it.key == 'statProp'}

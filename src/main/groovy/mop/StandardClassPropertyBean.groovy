@@ -1,7 +1,10 @@
 package mop
 
 import org.codehaus.groovy.reflection.CachedMethod
+import org.codehaus.groovy.reflection.ReflectionUtils
 import org.codehaus.groovy.runtime.metaclass.ReflectionMetaMethod
+
+import java.lang.reflect.Method
 
 class StandardClassPropertyBean extends MetaProperty {
 
@@ -15,22 +18,37 @@ class StandardClassPropertyBean extends MetaProperty {
     CachedMethod cachedSetMethod
 
     StandardClassPropertyBean (Object instance, String property) {
-        super ()
+        super (property ,instance.getClass())
         this.declaringClass = instance.getClass()
         this.propertyName = property
 
 
-        String getMethodName = "get"+ property[0].toLowerCase() + property.substring(1)
-        if (declaringClass.hasProperty(property))
-            cachedGetMethod = new CachedMethod(instance::"$getMethodName")
+        boolean hasProp = instance.hasProperty(property)
+        if (hasProp) {
+            String getMethodName = "get"+ property[0].toUpperCase() + property.substring(1)
 
-        getter = new ReflectionMetaMethod (cachedGetMethod)
+            Method getMethod = instance.getClass().getMethod(getMethodName, [] as Class[])
 
-        String setMethodName = "set"+ property[0].toLowerCase() + property.substring(1)
-        if (declaringClass.hasProperty(property))
-            cachedSetMethod = new CachedMethod(instance::"$setMethodName")
+            if (getMethod)
+                cachedGetMethod = new CachedMethod(getMethod)
+            else
+                throw new MissingMethodException(getMethodName)
 
-        setter = new ReflectionMetaMethod (cachedSetMethod)
+            getter = new ReflectionMetaMethod (cachedGetMethod)
+
+            String setMethodName = "set"+ property[0].toUpperCase() + property.substring(1)
+            Method setMethod = instance.getClass().getMethods().find{it.name == setMethodName}
+
+            if (setMethod) {
+                cachedSetMethod = new CachedMethod(setMethod)
+            }
+
+            setter = new ReflectionMetaMethod (cachedSetMethod)
+
+        } else {
+            throw new MissingPropertyException(property)
+        }
+
 
     }
 

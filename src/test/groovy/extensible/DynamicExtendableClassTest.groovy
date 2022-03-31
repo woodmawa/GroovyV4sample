@@ -3,6 +3,7 @@ package extensible
 import org.codehaus.groovy.runtime.HandleMetaClass
 import org.codehaus.groovy.runtime.MethodClosure
 import org.junit.jupiter.api.Test
+import utils.ClassUtils
 
 import java.lang.reflect.Constructor
 import java.lang.reflect.Modifier
@@ -31,9 +32,9 @@ class DynamicExtendableClassTest {
         assert DynamicExtendableClass.metaClass.getClass() == ExpandoMetaClass
 
         assertEquals ("added property to class metaClass", testInstance.addedProperty)
-        assertEquals ("added closure as static method", testInstance.getStaticAddedMethod())  //calls getStaticAddedMethod - groovy trick
-        assertEquals ("added closure as method", testInstance.addedMethod)  //works.  calls getAddedMethod - groovy trick for getXxx as property
-        assertEquals ("added closure as static method", DynamicExtendableClass.staticAddedMethod )  //works class static class Closure
+        assertEquals ("added closure as static method to class metaClass", testInstance.getAddedStaticMethod())  //calls getStaticAddedMethod - groovy trick
+        assertEquals ("added closure as method to class metaClass", testInstance.addedMethod)  //works.  calls getAddedMethod - groovy trick for getXxx as property
+        //assertEquals ("added closure as static method", DynamicExtendableClass.staticAddedMethod )  //works class static class Closure
 
     }
 
@@ -43,7 +44,7 @@ class DynamicExtendableClassTest {
         assert DynamicExtendableClass.metaClass.getClass() == ExpandoMetaClass
 
         assertEquals (["declaredStaticString", "class", "declaredMethodStaticString", "addedProperty", "addedMethod"].sort(), DynamicExtendableClass.metaClass.properties.collect {it.name}.sort())
-        assertEquals (["getAddedProperty", "getStaticAddedMethod", "getAddedMethod","getClass", "\$getLookup", "getDeclaredMethodStaticString", "getDeclaredStaticString", "getMetaClass"].sort(), DynamicExtendableClass.metaClass.methods.findAll {it.name.contains("get")}.collect{it.name}.sort() )
+        assertEquals (["getAddedProperty", "getAddedStaticMethod", "getAddedMethod","getClass", "\$getLookup", "getDeclaredMethodStaticString", "getDeclaredStaticString", "getMetaClass"].sort(), DynamicExtendableClass.metaClass.methods.findAll {it.name.contains("get")}.collect{it.name}.sort() )
 
     }
 
