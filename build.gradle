@@ -14,8 +14,8 @@ repositories {
     mavenCentral()
 }
 
-String groovyVersion = "4.0.1"
-String spockVersion = "2.2-M1-groovy-4.0"//"2.0-groovy-3.0"
+String groovyVersion = "4.0.4"
+String spockVersion = "2.2-M3-groovy-4.0"//"2.0-groovy-3.0"
 String MicronautVersion  = "3.3.0"
 
 dependencies {
