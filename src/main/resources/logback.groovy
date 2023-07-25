@@ -10,6 +10,10 @@ import static org.fusesource.jansi.internal.Kernel32.STD_OUTPUT_HANDLE
 
 /**
  * config appears to be ignored in intellij when running a script
+ *
+ * now requires a 3rd party to process as logback have dropped official supprt for groovy config
+ * https://virtualdogbert.github.io/logback-groovy-config/#getting-started
+ *
  */
 
 def appenderList = ["PlainConsole"]
