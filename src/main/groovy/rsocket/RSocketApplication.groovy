@@ -24,7 +24,13 @@ class RSocketApplication {
                 .map(DefaultPayload::create)
 
 
+        println "-- fire and forget mode -- "
         message.flatMap (payload -> rSocket.fireAndForget(payload))
+                .blockLast(Duration.ofMinutes(1))
+
+        println "-- request response  mode -- "
+        message.flatMap (payload -> rSocket.requestResponse(payload))
+        .doOnNext (response -> println "Response from server :: " + response.getDataUtf8())
                 .blockLast(Duration.ofMinutes(1))
 
         RSocketServer.stop()
