@@ -19,7 +19,8 @@ logback configuration to suppress detailed debug logging details from framework 
     <logger name="io.netty" level="WARN"/>
     <logger name="io.rsocket" level="WARN"/>
 
-    <root level="debug">
+    <root>
+        <level>debug</level>
         <appender-ref ref="STDOUT"/>
     </root>
 
